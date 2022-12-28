@@ -116,9 +116,31 @@ docker compose --project-directory mastodon run -it --rm --entrypoint "bash -c" 
 docker compose --project-directory mastodon run -it --rm --entrypoint "bash -c" tootctl "tootctl accounts create user01 --email user01@\$(hostname) --confirmed"
 ```
 
+If you don't want to or cannot install terraform and gcloud sdk locally, you can use it through docker:
+
+```sh
+docker build -t gcloud-terraform:412 gcloud-terraform
+docker run -i --rm -v "$(pwd)/plans:/home/cloudsdk/plans" -v gcloud-config-personal:/home/cloudsdk/.config -v gcloud-config-root:/root/.config --name gcloud-terraform -w /home/cloudsdk/plans gcloud-terraform:412
+# now you have a shell to run gcloud and terraform commands
+```
+
+Setup gcloud
+
+```sh
+gcloud auth application-default login
+gcloud auth application-default set-quota-project cloud-service-benchmarking-22
+```
+
+Setup terraform:
+
+```sh
+terraform init
+```
+
 ## TODO
 - maybe copy the docker-compose.yml into the project root (for modification differing from upstream) (e.g. differing env-files for federated instances)
 - terraform to setup an instance
+- add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
 
 # terraform: client vm & server vm
 
