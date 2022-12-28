@@ -5,4 +5,9 @@ if [ -z "$username" ]; then
   username="rootOfAllEvil" # default
 fi
 
-docker compose --project-directory mastodon run -it --rm --entrypoint "bash -c" tootctl "echo \"➔ creating owner $username with email $username@\$(hostname)\" && tootctl accounts create $username --email $username@\$(hostname) --confirmed --role Owner"
+domain="$2"
+if [ -z "$domain" ]; then
+  domain="localhost"
+fi
+
+docker compose --project-directory mastodon run -it --rm --name "$domain" --entrypoint "bash -c" tootctl "echo \"➔ creating owner $username with email $username@$domain\" && tootctl accounts create $username --email $username@$domain --confirmed --role Owner"

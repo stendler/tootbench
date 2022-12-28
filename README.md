@@ -107,6 +107,8 @@ User setup: https://docs.joinmastodon.org/admin/setup/
 > But it performs a DNS resolve against the provided E-mail domain, which will thus fail.
 > Only its own hostname (and possibly other hostnames within the network) will resolve as valid E-mail domains.
 
+Use these commands or the corresponding shell scripts `createAdminUser.sh` and `createUser.sh`.
+
 ```sh
 # creating an admin user (with role Owner)
 docker compose --project-directory mastodon run -it --rm --entrypoint "bash -c" tootctl 'tootctl accounts create toor --email root@$(hostname) --confirmed --role Owner'
