@@ -13,6 +13,25 @@ services:
     environment:
       - 'POSTGRES_HOST_AUTH_METHOD=trust'
 
+# https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
+  pgadmin:
+    image: dpage/pgadmin4:6
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin@stendler.de
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    networks:
+      - internal_network
+      - external_network
+    depends_on:
+      - db
+    volumes:
+      - ../pgadmin-servers.json:/pgadmin4/servers.json
+      - ../pgadmin4:/var/lib/pgadmin
+    ports:
+      - "127.0.0.1:8000:80"
+    profiles:
+      - debug
+
 # run directly with `docker compose run db-migrate`
   db-migrate:
     build: .
