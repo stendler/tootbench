@@ -101,10 +101,22 @@ docker build -t minica minica/.
 docker run --rm -v "$(pwd)/cert:/cert" minica --domains localhost
 ```
 
+User setup: https://docs.joinmastodon.org/admin/setup/
+
+> **Note:** There is an issue with DNS, since the tootctl container is only within the internal network.
+> But it performs a DNS resolve against the provided E-mail domain, which will thus fail.
+> Only its own hostname (and possibly other hostnames within the network) will resolve as valid E-mail domains.
+
+```sh
+# creating an admin user (with role Owner)
+docker compose --project-directory mastodon run -it --rm --entrypoint "bash -c" tootctl 'tootctl accounts create toor --email root@$(hostname) --confirmed --role Owner'
+# create any other user
+docker compose --project-directory mastodon run -it --rm --entrypoint "bash -c" tootctl "tootctl accounts create user01 --email user01@\$(hostname) --confirmed"
+```
+
 ## TODO
 - maybe copy the docker-compose.yml into the project root (for modification differing from upstream) (e.g. differing env-files for federated instances)
-- add admin user
-- add users programmatically
+- terraform to setup an instance
 
 # terraform: client vm & server vm
 

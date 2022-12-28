@@ -61,6 +61,20 @@ services:
     profiles:
       - migrate
 
+  tootctl:
+    build: .
+    image: tootsuite/mastodon
+    env_file: .env.production
+    entrypoint: tootctl
+    command: --help
+    networks:
+      - internal_network
+    depends_on:
+      - db
+      - redis
+    profiles:
+      - setup
+
   redis:
     restart: always
     image: redis:7-alpine
