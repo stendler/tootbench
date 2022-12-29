@@ -4,9 +4,21 @@ provider "google" {
   zone    = "europe-west1-b" // belgium, low CO2
 }
 
+variable "ansible-ssh-key" {
+  type = string
+  description = "SSH public key for Ansible to use. E.g. contents of ~/.ssh/id_ed25519.pub"
+}
+
 resource "google_compute_network" "vpc_network" {
   name                    = "mstdn-single-network"
   auto_create_subnetworks = "true"
+}
+
+data "template_file" "user_data" {
+  template = file("cloud-init.yaml")
+  vars = {
+    ansibleSshKey = var.ansible-ssh-key
+  }
 }
 
 resource "google_compute_instance" "instance" {
@@ -20,6 +32,9 @@ resource "google_compute_instance" "instance" {
     }
   }
 
+  metadata = {
+    user-data = data.template_file.user_data.rendered
+  }
 
   network_interface {
     network = google_compute_network.vpc_network.self_link
