@@ -4,9 +4,10 @@ provider "google" {
   zone    = "europe-west1-b" // belgium, low CO2
 }
 
-variable "ansible-ssh-key" {
+variable "ansible-ssh-key-file" {
   type = string
-  description = "SSH public key for Ansible to use. E.g. contents of ~/.ssh/id_ed25519.pub"
+  description = "SSH public key for Ansible to use. E.g. ~/.ssh/id_ed25519.pub"
+  default = "../../.ssh/id_ed25519.pub"
 }
 
 resource "google_compute_network" "vpc_network" {
@@ -17,7 +18,7 @@ resource "google_compute_network" "vpc_network" {
 data "template_file" "user_data" {
   template = file("cloud-init.yaml")
   vars = {
-    ansibleSshKey = var.ansible-ssh-key
+    ansibleSshKey = file(var.ansible-ssh-key-file)
   }
 }
 

@@ -120,15 +120,19 @@ If you don't want to or cannot install terraform and gcloud sdk locally, you can
 
 ```sh
 docker build -t gcloud-terraform:412 gcloud-terraform
-docker run -i --rm -v "$(pwd)/plans:/home/cloudsdk/plans" -v gcloud-config-personal:/home/cloudsdk/.config -v gcloud-config-root:/root/.config --name gcloud-terraform -w /home/cloudsdk/plans gcloud-terraform:412
+docker run -i --rm --entrypoint /bin/bash -v "$(pwd)/plans:/home/cloudsdk/plans" -v gcloud-config-personal:/home/cloudsdk/.config -v gcloud-config-root:/root/.config --name gcloud-terraform -w /home/cloudsdk/plans gcloud-terraform:412
 # now you have a shell to run gcloud and terraform commands
 ```
 
 Setup gcloud
 
 ```sh
+gcloud auth login
+gcloud config set project cloud-service-benchmarking-22
+gcloud config set compute/zone europe-west1-b
 gcloud auth application-default login
 gcloud auth application-default set-quota-project cloud-service-benchmarking-22
+ssh-keygen -f .ssh/id_ed25519 -t ed25519
 ```
 
 Setup terraform:
@@ -139,7 +143,8 @@ terraform init
 
 ## TODO
 - maybe copy the docker-compose.yml into the project root (for modification differing from upstream) (e.g. differing env-files for federated instances)
-- terraform to setup an instance
+- terraform copy needed files
+- terraform to setup an instance with mastodon
 - add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
 
 # terraform: client vm & server vm
