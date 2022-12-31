@@ -96,3 +96,10 @@ users:
     lock_passwd: true
     ssh_authorized_keys:
       - ${ansibleSshKey}
+
+final_message: |
+  cloud-init has finished
+  version: $version
+  timestamp: $timestamp
+  datasource: $datasource
+  uptime: $uptime
