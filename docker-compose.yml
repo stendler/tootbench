@@ -179,7 +179,7 @@ services:
     image: nginx:1.23.2
     restart: always
     environment:
-      - SERVER_NAME=localhost # todo make configurable
+      - SERVER_NAME=${hostname:-localhost}
       - NGINX_ENVSUBST_FILTER=SERVER_NAME # only substitute SERVER_NAME with `envsubst` (and no other strings looking like bash variables)
     depends_on:
       - web
@@ -192,7 +192,7 @@ services:
       - '0.0.0.0:443:443'
     volumes:
       - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
-      - ./cert/localhost:/etc/letsencrypt/live/localhost:ro # todo make configurable
+      - ./cert/${hostname:-localhost}:/etc/letsencrypt/live/${hostname:-localhost}:ro
       - assets:/home/mastodon/live/public:ro
 
   ## Uncomment to enable federation with tor instances along with adding the following ENV variables
