@@ -98,7 +98,7 @@ Generate certificates using [minica]
 # to build minica in docker:
 docker build -t minica minica/.
 # create a certificate for localhost
-docker run --rm -v "$(pwd)/cert:/cert" minica --domains localhost
+docker run --rm -v "$(pwd)/cert:/cert" -u $(id -u):$(id -g) minica --domains localhost
 ```
 
 User setup: https://docs.joinmastodon.org/admin/setup/

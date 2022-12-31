@@ -23,9 +23,10 @@ data "template_file" "user_data" {
 }
 
 resource "google_compute_instance" "instance" {
-  machine_type = "e2-micro"
+  machine_type = "e2-medium"
   name         = "mstdn-single-instance"
   tags         = ["ssh", "internal"]
+  allow_stopping_for_update = true
 
   boot_disk {
     initialize_params {
@@ -84,7 +85,7 @@ resource "google_compute_firewall" "ssh" {
 }
 
 resource "google_compute_firewall" "internal" {
-  name = "allow-net-internal"
+  name = "allow-web-internal"
   allow {
     ports    = ["80", "443"]
     protocol = "tcp"
