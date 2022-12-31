@@ -17,7 +17,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4:6
     environment:
-      - PGADMIN_DEFAULT_EMAIL=pgadmin@stendler.de
+      - PGADMIN_DEFAULT_EMAIL=pgadmin@example.com
       - PGADMIN_DEFAULT_PASSWORD=admin
     networks:
       - internal_network
@@ -26,7 +26,7 @@ services:
       - db
     volumes:
       - ../pgadmin-servers.json:/pgadmin4/servers.json
-      - ../pgadmin4:/var/lib/pgadmin
+      - pgadmin4:/var/lib/pgadmin
     ports:
       - "127.0.0.1:8000:80"
     profiles:
@@ -225,3 +225,4 @@ networks:
 
 volumes:
   assets:
+  pgadmin4:
