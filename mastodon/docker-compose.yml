@@ -194,8 +194,8 @@ services:
       - external_network
       - internal_network
     ports:
-      - '127.0.0.1:80:80'
-      - '127.0.0.1:443:443'
+      - '0.0.0.0:80:80'
+      - '0.0.0.0:443:443'
     volumes:
       - ../nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ../cert/localhost:/etc/letsencrypt/live/localhost:ro
