@@ -100,23 +100,23 @@ users:
 
 write_files:
   - path: /home/ansible/docker-compose.yml
-    owner: ansible
+#    owner: ansible
     encoding: base64
     content: ${base64encode(dockerCompose)}
   - path: /home/ansible/cert/${hostname}/cert.pem
-    owner: ansible
+#    owner: ansible
     encoding: base64
     content: ${base64encode(minicaCert)}
   - path: /home/ansible/cert/${hostname}/key.pem
-    owner: ansible
+#    owner: ansible
     encoding: base64
     content: ${base64encode(minicaKey)}
   - path: /home/ansible/nginx.conf.template
-    owner: ansible
+#    owner: ansible
     encoding: base64
     content: ${base64encode(nginxTemplate)}
   - path: /home/ansible/.env.production
-    owner: ansible
+#    owner: ansible
     encoding: base64
     content: ${base64encode(env_production)}
 
