@@ -78,10 +78,19 @@ packages:
 
 ssh_pwauth: false
 
+# create the docker group
+groups:
+  - docker
+
+# Add default auto created user to docker group
+system_info:
+  default_user:
+    groups: [docker]
+
 users:
   - name: ansible
     gecos: Ansible User
-    groups: users,admin,wheel
+    groups: users,admin,wheel,docker
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: true
