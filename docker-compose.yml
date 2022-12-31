@@ -1,0 +1,222 @@
+version: '3'
+services:
+  db:
+    restart: always
+    image: postgres:14-alpine
+    shm_size: 256mb
+    networks:
+      - internal_network
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'postgres']
+    volumes:
+      - ./mastodon/postgres14:/var/lib/postgresql/data
+    environment:
+      - 'POSTGRES_HOST_AUTH_METHOD=trust'
+
+# https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
+  pgadmin:
+    image: dpage/pgadmin4:6
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    networks:
+      - internal_network
+      - external_network
+    depends_on:
+      - db
+    volumes:
+      - ./pgadmin-servers.json:/pgadmin4/servers.json
+      - pgadmin4:/var/lib/pgadmin
+    ports:
+      - "127.0.0.1:8000:80"
+    profiles:
+      - debug
+
+# run directly with `docker compose run db-migrate`
+  db-migrate:
+    image: tootsuite/mastodon:v4.0.2
+    env_file: .env.production
+      #    environment:
+      #      - DB_HOST=db
+      #      - REDIS_HOST=redis
+    command: bash -c "bundle exec rake db:setup"
+    networks:
+      - internal_network
+    depends_on:
+      - db
+    profiles:
+      - migrate
+
+  precompile-assets:
+    image: tootsuite/mastodon:v4.0.2
+    env_file: .env.production
+    command: bash -c "bundle exec rake assets:precompile"
+    networks:
+      - internal_network
+    volumes:
+      - ./mastodon/public/:/mastodon/public/:ro
+      - assets:/opt/mastodon/public
+    profiles:
+      - migrate
+
+  tootctl:
+    image: tootsuite/mastodon:v4.0.2
+    env_file: .env.production
+    entrypoint: tootctl
+    command: --help
+    networks:
+      - internal_network
+    depends_on:
+      - db
+      - redis
+    profiles:
+      - setup
+
+  redis:
+    restart: always
+    image: redis:7-alpine
+    networks:
+      - internal_network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+    volumes:
+      - ./mastodon/redis:/data
+
+  # es:
+  #   restart: always
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.17.4
+  #   environment:
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m -Des.enforce.bootstrap.checks=true"
+  #     - "xpack.license.self_generated.type=basic"
+  #     - "xpack.security.enabled=false"
+  #     - "xpack.watcher.enabled=false"
+  #     - "xpack.graph.enabled=false"
+  #     - "xpack.ml.enabled=false"
+  #     - "bootstrap.memory_lock=true"
+  #     - "cluster.name=es-mastodon"
+  #     - "discovery.type=single-node"
+  #     - "thread_pool.write.queue_size=1000"
+  #   networks:
+  #      - external_network
+  #      - internal_network
+  #   healthcheck:
+  #      test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
+  #   volumes:
+  #      - ./mastodon/elasticsearch:/usr/share/elasticsearch/data
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #     nofile:
+  #       soft: 65536
+  #       hard: 65536
+  #   ports:
+  #     - '127.0.0.1:9200:9200'
+
+  web:
+    image: tootsuite/mastodon:v4.0.2
+    restart: always
+    env_file: .env.production
+#    environment:
+#      - DB_HOST=db
+#      - REDIS_HOST=redis
+    command: bash -c "rm -f /mastodon/tmp/pids/server.pid; bundle exec rails server -p 3000"
+    networks:
+      - external_network
+      - internal_network
+    healthcheck:
+      # prettier-ignore
+      test: ['CMD-SHELL', 'wget -q --spider --proxy=off localhost:3000/health || exit 1']
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      - db
+      - redis
+      # - es
+    volumes:
+      - assets:/mastodon/public/:ro
+
+  streaming:
+    image: tootsuite/mastodon:v4.0.2
+    restart: always
+    env_file: .env.production
+#    environment:
+#      - DB_HOST=db
+#      - REDIS_HOST=redis
+    command: node ./streaming
+    networks:
+      - external_network
+      - internal_network
+    healthcheck:
+      # prettier-ignore
+      test: ['CMD-SHELL', 'wget -q --spider --proxy=off localhost:4000/api/v1/streaming/health || exit 1']
+    ports:
+      - '127.0.0.1:4000:4000'
+    depends_on:
+      - db
+      - redis
+
+  sidekiq:
+    image: tootsuite/mastodon:v4.0.2
+    restart: always
+    env_file: .env.production
+#    environment:
+#      - DB_HOST=db
+#      - REDIS_HOST=redis
+    command: bundle exec sidekiq
+    depends_on:
+      - db
+      - redis
+    networks:
+      - external_network
+      - internal_network
+    volumes:
+      - assets:/mastodon/public/:ro
+    healthcheck:
+      test: ['CMD-SHELL', "ps aux | grep '[s]idekiq\ 6' || false"]
+
+  nginx:
+    image: nginx:1.23.2
+    restart: always
+    environment:
+      - SERVER_NAME=localhost # todo make configurable
+      - NGINX_ENVSUBST_FILTER=SERVER_NAME # only substitute SERVER_NAME with `envsubst` (and no other strings looking like bash variables)
+    depends_on:
+      - web
+      - streaming
+    networks:
+      - external_network
+      - internal_network
+    ports:
+      - '0.0.0.0:80:80'
+      - '0.0.0.0:443:443'
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./cert/localhost:/etc/letsencrypt/live/localhost:ro # todo make configurable
+      - assets:/home/mastodon/live/public:ro
+
+  ## Uncomment to enable federation with tor instances along with adding the following ENV variables
+  ## http_proxy=http://privoxy:8118
+  ## ALLOW_ACCESS_TO_HIDDEN_SERVICE=true
+  # tor:
+  #   image: sirboops/tor
+  #   networks:
+  #      - external_network
+  #      - internal_network
+  #
+  # privoxy:
+  #   image: sirboops/privoxy
+  #   volumes:
+  #     - ./mastodon/priv-config:/opt/config
+  #   networks:
+  #     - external_network
+  #     - internal_network
+
+networks:
+  external_network:
+  internal_network:
+    internal: true
+
+volumes:
+  assets:
+  pgadmin4:

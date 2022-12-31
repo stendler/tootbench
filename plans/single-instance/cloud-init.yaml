@@ -71,6 +71,7 @@ apt:
         -----END PGP PUBLIC KEY BLOCK-----
 
 packages:
+  - git
   - docker-ce
   - docker-ce-cli
   - containerd.io
@@ -96,6 +97,33 @@ users:
     lock_passwd: true
     ssh_authorized_keys:
       - ${ansibleSshKey}
+
+write_files:
+  - path: /home/ansible/docker-compose.yml
+    owner: ansible
+    encoding: base64
+    content: ${base64encode(dockerCompose)}
+  - path: /home/ansible/cert/${hostname}/cert.pem
+    owner: ansible
+    encoding: base64
+    content: ${base64encode(minicaCert)}
+  - path: /home/ansible/cert/${hostname}/key.pem
+    owner: ansible
+    encoding: base64
+    content: ${base64encode(minicaKey)}
+  - path: /home/ansible/nginx.conf.template
+    owner: ansible
+    encoding: base64
+    content: ${base64encode(nginxTemplate)}
+  - path: /home/ansible/.env.production
+    owner: ansible
+    encoding: base64
+    content: ${base64encode(env_production)}
+
+runcmd:
+  - [ git, clone, --branch, v4.0.2, --depth, "1", "https://github.com/mastodon/mastodon.git", /home/ansible/mastodon ]
+  - [ chown, -R, "ansible:ansible", mastodon ]
+  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, up, --wait ]
 
 final_message: |
   cloud-init has finished

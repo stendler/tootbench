@@ -4,10 +4,26 @@ provider "google" {
   zone    = "europe-west1-b" // belgium, low CO2
 }
 
+variable "instance-name" {
+  type = string
+  default = "mstdn-single-instance"
+}
+
 variable "ansible-ssh-key-file" {
   type = string
   description = "SSH public key for Ansible to use. E.g. ~/.ssh/id_ed25519.pub"
   default = "../../.ssh/id_ed25519.pub"
+}
+
+variable "secrets" {
+  type = object({
+    rake-secret-key = string
+    rake-secret-otp = string
+    vapid-private-key = string
+    vapid-public-key = string
+  })
+  description = "Secrets for th .env.production template.\nrake-secret-key & rake-secret-otp: `rake secret`\nvapid-private-key & vapid-public-key: `rake mastodon:webpush:generate_vapid_key`"
+  sensitive = true
 }
 
 resource "google_compute_network" "vpc_network" {
@@ -15,16 +31,33 @@ resource "google_compute_network" "vpc_network" {
   auto_create_subnetworks = "true"
 }
 
+data "template_file" "env_production" {
+  template = file("../../.env.production.template")
+  vars = {
+    domain = var.instance-name
+    rake-secret-key = var.secrets.rake-secret-key
+    rake-secret-otp = var.secrets.rake-secret-otp
+    vapid-private-key = var.secrets.vapid-private-key
+    vapid-public-key = var.secrets.vapid-public-key
+  }
+}
+
 data "template_file" "user_data" {
   template = file("cloud-init.yaml")
   vars = {
     ansibleSshKey = file(var.ansible-ssh-key-file)
+    hostname = var.instance-name
+    dockerCompose = file("../../docker-compose.yml")
+    minicaCert = file(format("../../cert/%s/cert.pem", var.instance-name))
+    minicaKey = file(format("../../cert/%s/key.pem", var.instance-name))
+    nginxTemplate = file("../../nginx.conf.template")
+    env_production = data.template_file.env_production.rendered
   }
 }
 
 resource "google_compute_instance" "instance" {
   machine_type = "e2-medium"
-  name         = "mstdn-single-instance"
+  name         = var.instance-name
   tags         = ["ssh", "internal"]
   allow_stopping_for_update = true
 

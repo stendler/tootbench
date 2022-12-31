@@ -1,6 +1,6 @@
 ## Usage
 
-### Setup
+### Setup (for local dev deployment)
 
 #### Create .env configuration files
 
@@ -42,79 +42,9 @@ docker compose -f mastodon/docker-compose.yml run --rm precompile-assets db-migr
 docker compose -f mastodon/docker-compose.yml up
 ```
 
-## History / Steps done created
+### Setup for google cloud
 
-Steps done to create this repo.
-
-```sh
-# add mastodon as git subtree
-git subtree add --prefix mastodon https://github.com/mastodon/mastodon.git v4.0.2 --squash
-```
-
-Creating the `.env.production` file (especially the secrets and keys):
-
-```sh
-# build devcontainer to be able to run config setup scripts
-docker build -t devcontainer/mastodon --build-arg=VARIANT=3.1-bullseye --build-arg=NODE_VERSION=14 .mastodon/devcontainer/
-```
-
-```sh
-# run and setup devcontainer
-docker run -it --rm --user 1000 -e RAILS_ENV=production -v "$(pwd)":/workspaces/mastodon --workdir=/workspaces/mastodon devcontainer/mastodon /bin/bash
-## inside the container run (taken from devcontainer.json postCreateCommand - a bit bloated, but it works)
-cd mastodon
-rvm install ruby-3.0.4 && bundle install --path vendor/bundle && yarn install && gem install rake
-
-## interactive mastodon config setup
-# rake mastodon:setup # not really working with docker, just create the file by hand and add the secrets manually
-rake secret
-rake mastodon:webpush:generate_vapid_key
-# rake assets:precompile # somehow ar
-
-cd ..
-```
-
-Create a symlink to the new .env-file (ignored by the gitignore within the mastodon folder).
-
-```sh
-ln -s ../.env.production mastodon/.env.production
-```
-
-Run in docker compose:
-
-```sh
-cd mastodon
-docker compose run --rm db-migrate # setup db on first run
-docker compose run --rm precompile-assets
-```
-
-Problem: no ssl but production mode requires ssl
-
---> set up a reverse proxy (added to the docker-compose.yml) https://docs.joinmastodon.org/admin/install/#setting-up-nginx
-
-Generate certificates using [minica]
-
-```sh
-# to build minica in docker:
-docker build -t minica minica/.
-# create a certificate for localhost
-docker run --rm -v "$(pwd)/cert:/cert" -u $(id -u):$(id -g) minica --domains localhost
-```
-
-User setup: https://docs.joinmastodon.org/admin/setup/
-
-> **Note:** There is an issue with DNS, since the tootctl container is only within the internal network.
-> But it performs a DNS resolve against the provided E-mail domain, which will thus fail.
-> Only its own hostname (and possibly other hostnames within the network) will resolve as valid E-mail domains.
-
-Use these commands or the corresponding shell scripts `createAdminUser.sh` and `createUser.sh`.
-
-```sh
-# creating an admin user (with role Owner)
-docker compose --project-directory mastodon run -it --rm --entrypoint "bash -c" tootctl 'tootctl accounts create toor --email root@$(hostname) --confirmed --role Owner'
-# create any other user
-docker compose --project-directory mastodon run -it --rm --entrypoint "bash -c" tootctl "tootctl accounts create user01 --email user01@\$(hostname) --confirmed"
-```
+#### (optional) Create a docker image for gcloud and terraform
 
 If you don't want to or cannot install terraform and gcloud sdk locally, you can use it through docker:
 
@@ -124,27 +54,42 @@ docker run -i --rm --entrypoint /bin/bash -v "$(pwd)/plans:/home/cloudsdk/plans"
 # now you have a shell to run gcloud and terraform commands
 ```
 
-Setup gcloud
+#### Init
 
 ```sh
+export $GCLOUD_PROJECT=cloud-service-benchmarking-22
 gcloud auth login
-gcloud config set project cloud-service-benchmarking-22
+gcloud config set project $GCLOUD_PROJECT
 gcloud config set compute/zone europe-west1-b
 gcloud auth application-default login
-gcloud auth application-default set-quota-project cloud-service-benchmarking-22
+gcloud auth application-default set-quota-project $GCLOUD_PROJECT
 ssh-keygen -f .ssh/id_ed25519 -t ed25519
+docker build -t minica minica/. # if not done already
+#gcloud artifacts repositories create tootsuite --repository-format=docker --location europe-west1
+#gcloud builds submit --tag europe-west1-docker.pkg.dev/$GCLOUD_PROJECT/tootsuite/mastodon
 ```
 
-Setup terraform:
+#### Deploy single instance
+
+Generate certificate
 
 ```sh
-terraform init
+docker run --rm -v "$(pwd)/cert:/cert" -u $(id -u):$(id -g) minica --domains mstdn-single-instance 
 ```
+
+
+
+
 
 ## TODO
 - maybe copy the docker-compose.yml into the project root (for modification differing from upstream) (e.g. differing env-files for federated instances)
-- terraform copy needed files
+- terraform copy needed files / todo: build and push common images to a registry instead of rsyncing all up
+- terraform: create dedicated(?) docker-compose (or at least only copy the yaml file), template the .env.production (hostname & maybe IP), create and copy the minica files beforehand
+- user creation: output/append file with login (user@email) & password 
 - terraform to setup an instance with mastodon
+- metric collection: system stats
+- load generation: selenium (is that even allowed?)
+- docker-compose: limit resources / set min reserved
 - add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
 
 # terraform: client vm & server vm
