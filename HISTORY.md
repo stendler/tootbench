@@ -116,7 +116,18 @@ rsync -azh --filter=':- .gitignore' --exclude=.git . ansible@mstdn-single-instan
 ssh ansible@mstdn-single-instance.europe-west1-b.cloud-service-benchmarking-22
 ```
 
-#### Create and push reused images
+--> now all done with terraform and cloud-init. The Controller can reach mastodon on instance.
+Problem: https cannot be verified due to self-signed certificate.
+
+Destroy
+
+```sh
+terraform -chdir=plans/single-instance  destroy -var-file=secrets.tfvars
+```
+
+
+
+#### (obsolete) Create and push reused images
 
 ```sh
 gcloud artifacts repositories create tootsuite --repository-format=docker --location europe-west1
