@@ -1,3 +1,4 @@
+## template: jinja
 #cloud-config
 packages_update: true
 packages_upgrade: true
@@ -72,6 +73,7 @@ apt:
 
 packages:
   - git
+  - ca-certificates
   - docker-ce
   - docker-ce-cli
   - containerd.io
@@ -98,38 +100,25 @@ users:
     ssh_authorized_keys:
       - ${ansibleSshKey}
 
+# https://ubuntu.com/server/docs/security-trust-store
 write_files:
-  - path: /home/ansible/docker-compose.yml
-#    owner: ansible
+  - path: /usr/local/share/ca-certificates/minica.crt
     encoding: base64
-    content: ${base64encode(dockerCompose)}
-  - path: /home/ansible/cert/${hostname}/cert.pem
-#    owner: ansible
-    encoding: base64
-    content: ${base64encode(minicaCert)}
-  - path: /home/ansible/cert/${hostname}/key.pem
-#    owner: ansible
-    encoding: base64
-    content: ${base64encode(minicaKey)}
-  - path: /home/ansible/nginx.conf.template
-#    owner: ansible
-    encoding: base64
-    content: ${base64encode(nginxTemplate)}
-  - path: /home/ansible/.env.production
-#    owner: ansible
-    encoding: base64
-    content: ${base64encode(env_production)}
+    content: ${base64encode(minicaRoot)}
 
 runcmd:
-  - [ git, clone, --branch, v4.0.2, --depth, "1", "https://github.com/mastodon/mastodon.git", /home/ansible/mastodon ]
-  - [ chown, -R, "ansible:ansible", /home/ansible ]
-  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, --quiet-pull, precompile-assets ]
-  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, --quiet-pull, db-migrate ]
-  - [ bash, -c, "hostname=${hostname} docker compose --project-directory /home/ansible/ --project-name mastodon up --quiet-pull --wait" ]
+  - update-ca-certificates
+
+merge_how:
+  - name: list
+    settings: [append]
+  - name: dict
+    settings: [no_replace, recurse_list]
 
 final_message: |
-  cloud-init has finished
+  -----------------
   version: $version
   timestamp: $timestamp
   datasource: $datasource
   uptime: $uptime
+  cloud-init has finished

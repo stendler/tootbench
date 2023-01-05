@@ -42,16 +42,30 @@ data "template_file" "env_production" {
   }
 }
 
-data "template_file" "user_data" {
+data "template_file" "cloud_init_default" {
   template = file("cloud-init.yaml")
   vars = {
     ansibleSshKey = file(var.ansible-ssh-key-file)
+    minicaRoot = file("../../cert/minica.pem")
+  }
+}
+
+data "template_file" "cloud_init_instance_extension" {
+  template = file("mastodon.extend.cloud-init.yml")
+  vars = {
     hostname = var.instance-name
     dockerCompose = file("../../docker-compose.yml")
     minicaCert = file(format("../../cert/%s/cert.pem", var.instance-name))
     minicaKey = file(format("../../cert/%s/key.pem", var.instance-name))
     nginxTemplate = file("../../nginx.conf.template")
     env_production = data.template_file.env_production.rendered
+  }
+}
+
+data "template_file" "cloud_init_controller_extension" {
+  template = file("controller.extend.cloud-init.yml")
+  vars = {
+    hostname = var.instance-name
   }
 }
 
@@ -68,7 +82,8 @@ resource "google_compute_instance" "instance" {
   }
 
   metadata = {
-    user-data = data.template_file.user_data.rendered
+    enable-guest-attributes = "TRUE"
+    user-data = format("%s%s", data.template_file.cloud_init_default.rendered, data.template_file.cloud_init_instance_extension.rendered)
   }
 
   network_interface {
@@ -92,7 +107,8 @@ resource "google_compute_instance" "controller" {
   }
 
   metadata = {
-    user-data = data.template_file.user_data.rendered
+    enable-guest-attributes = "TRUE"
+    user-data = format("%s%s", data.template_file.cloud_init_default.rendered, data.template_file.cloud_init_controller_extension.rendered)
   }
 
   network_interface {

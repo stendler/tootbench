@@ -1,0 +1,30 @@
+
+write_files:
+  - path: /home/ansible/docker-compose.yml
+    #    owner: ansible
+    encoding: base64
+    content: ${base64encode(dockerCompose)}
+  - path: /home/ansible/cert/${hostname}/cert.pem
+    #    owner: ansible
+    encoding: base64
+    content: ${base64encode(minicaCert)}
+  - path: /home/ansible/cert/${hostname}/key.pem
+    #    owner: ansible
+    encoding: base64
+    content: ${base64encode(minicaKey)}
+  - path: /home/ansible/nginx.conf.template
+    #    owner: ansible
+    encoding: base64
+    content: ${base64encode(nginxTemplate)}
+  - path: /home/ansible/.env.production
+    #    owner: ansible
+    encoding: base64
+    content: ${base64encode(env_production)}
+
+runcmd:
+  - [ git, clone, --branch, v4.0.2, --depth, "1", "https://github.com/mastodon/mastodon.git", /home/ansible/mastodon ]
+  - [ chown, -R, "ansible:ansible", /home/ansible ]
+  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, --quiet-pull, precompile-assets ]
+  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, --quiet-pull, db-migrate ]
+  - [ bash, -c, "hostname=${hostname} docker compose --project-directory /home/ansible/ --project-name mastodon up --quiet-pull --wait" ]
+  - [ curl, -H, "Tags: elephant", -H, "Title: CSB ${hostname} deployed", -d, "{{ v1.local_hostname }}", "https://ntfy.sh/cloud-service-benchmarking-22" ]

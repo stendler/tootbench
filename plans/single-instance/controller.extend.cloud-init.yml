@@ -1,0 +1,7 @@
+
+packages:
+  - httpie
+
+runcmd:
+  - [ curl, -H, "Tags: rocket", -H, "Title: CSB ${hostname} deployed", -d, "{{ v1.local_hostname }}", "https://ntfy.sh/cloud-service-benchmarking-22" ]
+#  - [ https, "POST", "Tags:rocket", "Title:{{ v1.local_hostname }}", "message==CSB {{ v1.local_hostname }} deployed", "https://ntfy.sh/cloud-service-benchmarking-22" ]
