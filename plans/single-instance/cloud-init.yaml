@@ -107,7 +107,7 @@ write_files:
     content: ${base64encode(minicaRoot)}
 
 runcmd:
-  - update-ca-certificates
+  - [ update-ca-certificates ]
 
 merge_how:
   - name: list
