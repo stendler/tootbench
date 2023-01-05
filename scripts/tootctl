@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+docker compose --project-directory mastodon run --rm tootctl $@
