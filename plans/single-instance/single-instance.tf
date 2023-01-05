@@ -4,6 +4,8 @@ provider "google" {
   zone    = "europe-west1-b" // belgium, low CO2
 }
 
+provider "cloudinit" {}
+
 variable "instance-name" {
   type = string
   default = "mstdn-single-instance"
@@ -69,6 +71,36 @@ data "template_file" "cloud_init_controller_extension" {
   }
 }
 
+data "cloudinit_config" "instance" {
+  gzip = false
+  base64_encode = false
+
+  part {
+    content_type = "text/cloud-config"
+    content = data.template_file.cloud_init_default.rendered
+  }
+  part {
+    content_type = "text/cloud-config"
+    content = data.template_file.cloud_init_instance_extension.rendered
+  }
+}
+
+data "cloudinit_config" "controller" {
+  gzip = false
+  base64_encode = false
+
+  part {
+    content_type = "text/cloud-config"
+    content = data.template_file.cloud_init_default.rendered
+    merge_type = "list(append)+dict(recurse_array)+str()"
+  }
+  part {
+    content_type = "text/cloud-config"
+    content = data.template_file.cloud_init_controller_extension.rendered
+    merge_type = "list(append)+dict(recurse_array)+str()"
+  }
+}
+
 resource "google_compute_instance" "instance" {
   machine_type = "e2-medium"
   name         = var.instance-name
@@ -83,7 +115,7 @@ resource "google_compute_instance" "instance" {
 
   metadata = {
     enable-guest-attributes = "TRUE"
-    user-data = format("%s%s", data.template_file.cloud_init_default.rendered, data.template_file.cloud_init_instance_extension.rendered)
+    user-data = data.cloudinit_config.instance.rendered
   }
 
   network_interface {
@@ -108,7 +140,7 @@ resource "google_compute_instance" "controller" {
 
   metadata = {
     enable-guest-attributes = "TRUE"
-    user-data = format("%s%s", data.template_file.cloud_init_default.rendered, data.template_file.cloud_init_controller_extension.rendered)
+    user-data = data.cloudinit_config.controller.rendered
   }
 
   network_interface {
