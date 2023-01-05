@@ -125,7 +125,13 @@ Destroy
 terraform -chdir=plans/single-instance  destroy -var-file=secrets.tfvars
 ```
 
+Moved these into scripts:
 
+```sh
+./scripts/setup-single-instance.sh # setup and deploy everything (including certs)
+./scripts/restart-instance.sh # optionally with a terraform resource name to be restarted (default: "instance controller")
+./scripts/destroy-single-instance.sh # shutdown
+```
 
 #### (obsolete) Create and push reused images
 

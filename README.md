@@ -65,32 +65,30 @@ gcloud auth application-default login
 gcloud auth application-default set-quota-project $GCLOUD_PROJECT
 ssh-keygen -f .ssh/id_ed25519 -t ed25519
 docker build -t minica minica/. # if not done already
-#gcloud artifacts repositories create tootsuite --repository-format=docker --location europe-west1
-#gcloud builds submit --tag europe-west1-docker.pkg.dev/$GCLOUD_PROJECT/tootsuite/mastodon
 ```
 
 #### Deploy single instance
 
-Generate certificate
-
 ```sh
-docker run --rm -v "$(pwd)/cert:/cert" -u $(id -u):$(id -g) minica --domains mstdn-single-instance 
+./scripts/setup-single-instance.sh # setup and deploy everything (including certs)
+./scripts/restart-instance.sh # optionally with a terraform resource name to be restarted (default: "instance controller")
+./scripts/destroy-single-instance.sh # shutdown
 ```
 
 
-
-
-
 ## TODO
-- maybe copy the docker-compose.yml into the project root (for modification differing from upstream) (e.g. differing env-files for federated instances)
-- terraform copy needed files / todo: build and push common images to a registry instead of rsyncing all up
-- terraform: create dedicated(?) docker-compose (or at least only copy the yaml file), template the .env.production (hostname & maybe IP), create and copy the minica files beforehand
-- user creation: output/append file with login (user@email) & password 
-- terraform to setup an instance with mastodon
-- metric collection: system stats
-- load generation: selenium (is that even allowed?)
+- user creation: output/append file with login (user@email) & password
+- metric collection: system stats - vmstat(?) - send metrics directly to controller to avoid disk logging? -> configurable?
+  - docker image & container - limit resources
+- load generation: selenium (is that even allowed?) -> direct api calls are fine for now 
+  - (tootctl? or a programmed tool using a lib or http api request directly)
 - docker-compose: limit resources / set min reserved
 - add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
+
+- use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress 
+- client vms for load generation instructed from the controller
+
+- slide: show a diagram/architecture
 
 # terraform: client vm & server vm
 
