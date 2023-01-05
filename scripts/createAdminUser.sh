@@ -10,4 +10,13 @@ if [ -z "$domain" ]; then
   domain="localhost"
 fi
 
-docker compose --project-directory mastodon run -it --rm --name "$domain" --entrypoint "bash -c" tootctl "echo \"➔ creating owner $username with email $username@$domain\" && tootctl accounts create $username --email $username@$domain --confirmed --role Owner"
+echo "➔ creating owner $username with email $username@$domain"
+newuser=$(docker compose --project-directory mastodon run -it --rm --name "$domain" tootctl accounts create $username --email $username@$domain --confirmed --role Owner | awk -v user=$username -v email="$username@$domain" '/New password:/ {print user, email, $3}')
+
+if [ -z "$newuser" ]; then
+  echo "User creation failed. Already exists?"
+  exit 1
+fi
+
+echo $newuser >> admin.txt
+echo Created user: $newuser
