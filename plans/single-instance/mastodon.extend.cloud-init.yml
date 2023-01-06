@@ -6,11 +6,11 @@ write_files:
     #    owner: ansible
     encoding: base64
     content: ${base64encode(dockerCompose)}
-  - path: /home/ansible/cert/${hostname}/cert.pem
+  - path: /home/ansible/cert/{{ v1.local_hostname }}/cert.pem
     #    owner: ansible
     encoding: base64
     content: ${base64encode(minicaCert)}
-  - path: /home/ansible/cert/${hostname}/key.pem
+  - path: /home/ansible/cert/{{ v1.local_hostname }}/key.pem
     #    owner: ansible
     encoding: base64
     content: ${base64encode(minicaKey)}
@@ -38,5 +38,5 @@ runcmd:
   - [ cd, /home/ansible ]
   - [ sh, createAdmin.sh ]
   - [ sh, createUser.sh ]
-  - [ bash, -c, "hostname=${hostname} docker compose --project-directory /home/ansible/ --project-name mastodon up --quiet-pull --wait" ]
-  - [ curl, -H, "Tags: elephant", -H, "Title: CSB ${hostname} deployed", -d, "${hostname} running mastodon now", "https://ntfy.sh/cloud-service-benchmarking-22" ]
+  - [ bash, -c, "hostname={{ v1.local_hostname }} docker compose --project-directory /home/ansible/ --project-name mastodon up --wait" ]
+  - [ curl, -H, "Tags: elephant", -H, "Title: CSB {{ v1.local_hostname }} deployed", -d, "{{ v1.local_hostname }} running mastodon now", "https://ntfy.sh/cloud-service-benchmarking-22" ]

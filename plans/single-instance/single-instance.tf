@@ -55,7 +55,6 @@ data "template_file" "cloud_init_default" {
 data "template_file" "cloud_init_instance_extension" {
   template = file("mastodon.extend.cloud-init.yml")
   vars = {
-    hostname = var.instance-name
     dockerCompose = file("../../docker-compose.yml")
     minicaCert = file(format("../../cert/%s/cert.pem", var.instance-name))
     minicaKey = file(format("../../cert/%s/key.pem", var.instance-name))
@@ -68,9 +67,7 @@ data "template_file" "cloud_init_instance_extension" {
 
 data "template_file" "cloud_init_controller_extension" {
   template = file("controller.extend.cloud-init.yml")
-  vars = {
-    hostname = var.instance-name
-  }
+  vars = { }
 }
 
 data "cloudinit_config" "instance" {
@@ -82,7 +79,7 @@ data "cloudinit_config" "instance" {
     content = data.template_file.cloud_init_default.rendered
   }
   part {
-    content_type = "text/cloud-config"
+    content_type = "text/jinja2"
     content = data.template_file.cloud_init_instance_extension.rendered
   }
 }
@@ -97,7 +94,7 @@ data "cloudinit_config" "controller" {
     merge_type = "list(append)+dict(recurse_array)+str()"
   }
   part {
-    content_type = "text/cloud-config"
+    content_type = "text/jinja2"
     content = data.template_file.cloud_init_controller_extension.rendered
     merge_type = "list(append)+dict(recurse_array)+str()"
   }
