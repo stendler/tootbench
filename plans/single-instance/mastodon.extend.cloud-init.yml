@@ -32,8 +32,9 @@ write_files:
 runcmd:
   - [ git, clone, --branch, v4.0.2, --depth, "1", "https://github.com/mastodon/mastodon.git", /home/ansible/mastodon ]
   - [ chown, -R, "ansible:ansible", /home/ansible ]
-  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, --quiet-pull, precompile-assets ]
-  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, --quiet-pull, db-migrate ]
+  - [ docker, compose, pull, --quiet ]
+  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, precompile-assets ]
+  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, db-migrate ]
   - [ cd, /home/ansible ]
   - [ sh, createAdmin.sh ]
   - [ sh, createUser.sh ]
