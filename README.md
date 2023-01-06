@@ -77,11 +77,13 @@ docker build -t minica minica/. # if not done already
 
 
 ## TODO
-- user creation: output/append file with login (user@email) & password
 - metric collection: system stats - vmstat(?) - send metrics directly to controller to avoid disk logging? -> configurable?
   - docker image & container - limit resources
 - load generation: selenium (is that even allowed?) -> direct api calls are fine for now 
   - (tootctl? or a programmed tool using a lib or http api request directly)
+- scenario configuration: tfvars for machine_type, number of users per instance, number of instances
+  - client config: messages per second per user?
+- federate
 - docker-compose: limit resources / set min reserved
 - add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
 
