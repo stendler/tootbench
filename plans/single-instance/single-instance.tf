@@ -59,6 +59,8 @@ data "template_file" "cloud_init_instance_extension" {
     dockerCompose = file("../../docker-compose.yml")
     minicaCert = file(format("../../cert/%s/cert.pem", var.instance-name))
     minicaKey = file(format("../../cert/%s/key.pem", var.instance-name))
+    scriptCreateAdmin = file("../../scripts/createAdminUser.sh")
+    scriptCreateUser = file("../../scripts/createUser.sh")
     nginxTemplate = file("../../nginx.conf.template")
     env_production = data.template_file.env_production.rendered
   }

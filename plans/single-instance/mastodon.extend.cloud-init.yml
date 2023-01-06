@@ -22,11 +22,20 @@ write_files:
     #    owner: ansible
     encoding: base64
     content: ${base64encode(env_production)}
+  - path: /home/ansible/createAdmin.sh
+    encoding: base64
+    content: ${base64encode(scriptCreateAdmin)}
+  - path: /home/ansible/createUser.sh
+    encoding: base64
+    content: ${base64encode(scriptCreateUser)}
 
 runcmd:
   - [ git, clone, --branch, v4.0.2, --depth, "1", "https://github.com/mastodon/mastodon.git", /home/ansible/mastodon ]
   - [ chown, -R, "ansible:ansible", /home/ansible ]
   - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, --quiet-pull, precompile-assets ]
   - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, --quiet-pull, db-migrate ]
+  - [ cd, /home/ansible ]
+  - [ sh, createAdmin.sh ]
+  - [ sh, createUser.sh ]
   - [ bash, -c, "hostname=${hostname} docker compose --project-directory /home/ansible/ --project-name mastodon up --quiet-pull --wait" ]
-  - [ curl, -H, "Tags: elephant", -H, "Title: CSB ${hostname} deployed", -d, "{{ v1.local_hostname }}", "https://ntfy.sh/cloud-service-benchmarking-22" ]
+  - [ curl, -H, "Tags: elephant", -H, "Title: CSB ${hostname} deployed", -d, "${hostname} running mastodon now", "https://ntfy.sh/cloud-service-benchmarking-22" ]
