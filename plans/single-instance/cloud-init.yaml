@@ -93,7 +93,7 @@ system_info:
 users:
   - name: ansible
     gecos: Ansible User
-    groups: users,admin,wheel,docker
+    groups: users,adm,wheel,docker
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: true
