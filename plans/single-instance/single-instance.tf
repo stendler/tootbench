@@ -103,7 +103,9 @@ data "cloudinit_config" "controller" {
 resource "google_compute_instance" "instance" {
   machine_type = "e2-medium"
   name         = var.instance-name
-  tags         = ["ssh", "internal", "debug-extern"]
+  tags         = ["ssh", "internal"
+    #,"debug-extern"
+  ]
   allow_stopping_for_update = true
 
   boot_disk {
