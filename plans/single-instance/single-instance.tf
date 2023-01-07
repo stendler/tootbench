@@ -201,6 +201,11 @@ resource "local_file" "ip" {
   content = google_compute_instance.instance.network_interface.0.access_config.0.nat_ip
 }
 
+resource "local_file" "hosts" {
+  filename = "hosts"
+  content = join("\n", formatlist("%s", [google_compute_instance.controller.name, google_compute_instance.instance.name]))
+}
+
 // A variable for extracting the external IP address of the VM
 output "Instance-IP" {
   value = google_compute_instance.instance.network_interface.0.access_config.0.nat_ip
