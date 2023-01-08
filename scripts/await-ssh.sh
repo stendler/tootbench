@@ -13,7 +13,7 @@ done
 
 # await ssh-server ready for connections
 # https://stackoverflow.com/questions/54668239/how-to-wait-until-ssh-is-available
-until gcloud compute ssh ansible@mstdn-single-instance --ssh-key-file=.ssh/id_ed25519 --command="test -f .env.production" -- -o ConnectTimeout=2 2>&1 ; do
+until gcloud compute ssh ansible@mstdn-single-instance --ssh-key-file=.ssh/id_ed25519 --command="test -f .env.production" -- -o ConnectTimeout=2 2>/dev/null ; do
   sleep 1
   echo "Trying to connect..."
 done
