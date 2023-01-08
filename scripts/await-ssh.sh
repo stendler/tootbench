@@ -19,6 +19,7 @@ until gcloud compute ssh ansible@mstdn-single-instance --ssh-key-file=.ssh/id_ed
 done
 
 # make mastodon publicly available
+# todo make sure the file is ready to be edited
 ssh mstdn-single-instance sed -i \"/^ALTERNATE_DOMAINS=/ s/$/$(cat plans/single-instance/ip)/\" .env.production
 (ssh mstdn-single-instance tail -f /var/log/cloud-init-output.log &) | awk '{print}; /cloud-init has finished/{exit}'
 

@@ -65,6 +65,9 @@ gcloud auth application-default login
 gcloud auth application-default set-quota-project $GCLOUD_PROJECT
 ssh-keygen -f .ssh/id_ed25519 -t ed25519
 docker build -t minica minica/. # if not done already
+# after running once...
+openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/minica.der
+
 ```
 
 #### Deploy single instance
@@ -87,7 +90,7 @@ docker build -t minica minica/. # if not done already
 - docker-compose: limit resources / set min reserved
 - add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
 
-- use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress 
+- use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4
 - client vms for load generation instructed from the controller
 
 - slide: show a diagram/architecture
