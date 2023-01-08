@@ -78,22 +78,39 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
 ./scripts/destroy-single-instance.sh # shutdown
 ```
 
-
 ## TODO
+- tootctl script to subscribe all users to a single user
+- script to loop through a users.txt subscribing everyone to everyone
+- client
+  - one looping through all user postStatus handles
+  - checking time after each loop: either wait or warn, that the wanted timing cannot be kept
+  - (maybe run each postStatus on its own thread though) (futures?)
+- ntfy that users.txt is complete (or even its contents); subscribe to on controller (not client though)
+- wait for and upload these to the client node
+- package the client for docker --> github container registry
 - metric collection: system stats - vmstat(?) - send metrics directly to controller to avoid disk logging? -> configurable?
   - docker image & container - limit resources
-- load generation: selenium (is that even allowed?) -> direct api calls are fine for now 
-  - (tootctl? or a programmed tool using a lib or http api request directly)
 - scenario configuration: tfvars for machine_type, number of users per instance, number of instances
-  - client config: messages per second per user?
+  - machine_type
+  - number of users per instance (may differ for each instance)
+  - always subscribe everyone to everyone?
+  - client config: ~~messages per second per user?~~ is limited anyway. So go full as fast as possible (1 per second I think)
 - federate
+  - multiple instances in terraform
+  - configure instances to federate with each other
+  - multiple instances in scripts
 - docker-compose: limit resources / set min reserved
-- add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
+
 
 - use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4
 - client vms for load generation instructed from the controller
 
 - slide: show a diagram/architecture
+
+## Future ToDos
+
+- user avatars (differing per user globally) --> load
+- add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
 
 # terraform: client vm & server vm
 
