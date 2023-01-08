@@ -77,10 +77,12 @@ data "cloudinit_config" "instance" {
   part {
     content_type = "text/cloud-config"
     content = data.template_file.cloud_init_default.rendered
+    merge_type = "list(append)+dict(recurse_array)+str()"
   }
   part {
     content_type = "text/jinja2"
     content = data.template_file.cloud_init_instance_extension.rendered
+    merge_type = "list(append)+dict(recurse_array)+str()"
   }
 }
 
