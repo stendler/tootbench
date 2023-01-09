@@ -25,6 +25,6 @@ for i in `seq $number`; do
     exit 1
   fi
 
-  echo $newuser >> $(hostname).users.txt
+  echo $newuser >> $domain.users.txt
   echo Created user: $newuser
 done
