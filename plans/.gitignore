@@ -4,3 +4,7 @@ terraform.tfstate*
 .terraform.tfstate*
 
 secrets.tfvars
+
+# generated artifacts
+ip
+hosts
