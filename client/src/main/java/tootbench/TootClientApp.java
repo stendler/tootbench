@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.sys1yagi.mastodon4j.MastodonClient;
 import com.sys1yagi.mastodon4j.api.Scope;
 import com.sys1yagi.mastodon4j.api.Shutdownable;
-import com.sys1yagi.mastodon4j.api.entity.auth.AccessToken;
 import com.sys1yagi.mastodon4j.api.entity.auth.AppRegistration;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import com.sys1yagi.mastodon4j.api.method.Apps;
@@ -36,6 +35,8 @@ public class TootClientApp {
   private final Apps apps;
 
   private final TootLoggingHandler userStreamHandler = new TootLoggingHandler();
+
+  private final List<User> users = new ArrayList<>();
 
   public TootClientApp(String host) {
     this.clientAnon = new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson()).build();
@@ -71,34 +72,27 @@ public class TootClientApp {
     }
   }
 
-  public AccessToken login(AppRegistration app, String username, String password) throws Mastodon4jRequestException {
+  public User loginUser(AppRegistration app, String username, String password) throws Mastodon4jRequestException {
     try {
-      return apps.postUserNameAndPassword(app.getClientId(), app.getClientSecret(), new Scope(Scope.Name.ALL), username, password).execute();
-    } catch (Mastodon4jRequestException e) {
-      log.error(e.getResponse().toString(), e);
-      throw e;
-    }
-  }
-
-  public User runUser(AppRegistration app, String username, String password) throws Mastodon4jRequestException {
-    try {
-      var token = login(app, username, password);
-      log.info("User {} logged in", username);
+      var token = apps.postUserNameAndPassword(app.getClientId(), app.getClientSecret(), new Scope(Scope.Name.ALL), username, password).execute();
+      log.debug("User {} logged in", username);
       var userReceiver = new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson())
         .accessToken(token.getAccessToken())
         .useStreamingApi().build();
 
-      log.info("create stream");
+      log.trace("create stream");
       var userStream = new Streaming(userReceiver);
-      log.info("start streaming");
+      log.trace("start streaming");
       var shutdownable = userStream.federatedPublic(userStreamHandler);
 
       var userSender = new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson())
         .accessToken(token.getAccessToken()).build();
 
-      return new User(shutdownable, userSender);
+      var user = new User(shutdownable, userSender);
+      users.add(user);
+      return user;
     } catch (Mastodon4jRequestException e) {
-      log.error("Failed to create user {}", username);
+      log.error("Failed to login and connect user {}", username);
       throw e;
     }
   }
@@ -112,15 +106,13 @@ public class TootClientApp {
     var toot = new TootClientApp(host);
     var app = toot.register(CLIENT_NAME);
 
-    // todo do we need a registered client app per user? is the rate limit per user or per client or per ip?
-
     List<Shutdownable> toBeGracefullyShutdowned = new ArrayList<>();
 
     var username = "user1@localhost";
-    var user1 = toot.runUser(app, username, "2e6bbb94173971027c4207af64e061c6");
+    var user1 = toot.loginUser(app, username, "2e6bbb94173971027c4207af64e061c6");
     toBeGracefullyShutdowned.add(user1.feedStream);
 
-    var user2 = toot.runUser(app, "user2@localhost", "91c989c55a3d5e3163d6495c264c78c2");
+    var user2 = toot.loginUser(app, "user2@localhost", "91c989c55a3d5e3163d6495c264c78c2");
     new Follows(user2.clientSender()).postRemoteFollow("user1@localhost");
     new Follows(user1.clientSender()).postRemoteFollow("user2@localhost");
 
