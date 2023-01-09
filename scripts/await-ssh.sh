@@ -7,7 +7,7 @@ sed -i "/^# Google Compute Engine Section/,/^# End of Google Compute Engine Sect
 gcloud compute config-ssh --ssh-key-file=.ssh/id_ed25519
 
 for instance in $(cat plans/single-instance/hosts); do
-  sed -i "/^Host $instance/ s/[^ $instance]$/ $instance/" ~/.ssh/config
+  sed -i "/^Host $instance/ s/$/ $instance/" ~/.ssh/config
   sed -i "/^Host $instance/a\    User ansible" ~/.ssh/config
 done
 
