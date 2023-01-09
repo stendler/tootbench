@@ -16,6 +16,8 @@ import okhttp3.OkHttpClient;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -23,26 +25,21 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 @Slf4j
 public class TootClientApp {
 
   public static final String CLIENT_NAME = "Tootbenchamun";
 
-  private final String host;
-  private final MastodonClient clientAnon;
-  private final Apps apps;
+  private final Map<String, RegisteredApp> hostAppClients = new HashMap<>();
 
   private final TootLoggingHandler userStreamHandler = new TootLoggingHandler();
 
   private final List<User> users = new ArrayList<>();
-
-  public TootClientApp(String host) {
-    this.clientAnon = new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson()).build();
-    this.apps = new Apps(clientAnon);
-    this.host = host;
-  }
 
 
   public static void addCertificate() {
@@ -59,12 +56,15 @@ public class TootClientApp {
     }
   }
 
-  public AppRegistration register(String clientName) {
+  public RegisteredApp register(String host, String clientName) {
     try {
       log.debug("registering...");
+      var apps = new Apps(new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson()).build());
       var registration = apps.createApp(clientName, "urn:ietf:wg:oauth:2.0:oob", new Scope(Scope.Name.ALL)).execute();
       log.debug("app created: {} - {}", clientName, registration.getClientId());
-      return registration;
+      var ret = new RegisteredApp(apps, registration);
+      hostAppClients.put(host, ret);
+      return ret;
 
     } catch (Mastodon4jRequestException e) {
       log.error("Could not connect.");
@@ -72,9 +72,19 @@ public class TootClientApp {
     }
   }
 
-  public User loginUser(AppRegistration app, String username, String password) throws Mastodon4jRequestException {
+  public void createUsersFromFile(Path userFile) throws IOException {
+    String host = userFile.getFileName().toString().split("\\.")[0];
+    try (Stream<String> lines = Files.lines(userFile)) {
+      lines.map(s -> s.split(" "))
+        .filter(strings -> strings.length >= 3)
+        .forEach(strings -> loginUser(host, strings[1], strings[2]));
+    }
+  }
+
+  public User loginUser(String host, String username, String password) {
     try {
-      var token = apps.postUserNameAndPassword(app.getClientId(), app.getClientSecret(), new Scope(Scope.Name.ALL), username, password).execute();
+      var client = hostAppClients.get(host);
+      var token = client.appClient.postUserNameAndPassword(client.registration.getClientId(), client.registration.getClientSecret(), new Scope(Scope.Name.ALL), username, password).execute();
       log.debug("User {} logged in", username);
       var userReceiver = new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson())
         .accessToken(token.getAccessToken())
@@ -83,7 +93,8 @@ public class TootClientApp {
       log.trace("create stream");
       var userStream = new Streaming(userReceiver);
       log.trace("start streaming");
-      var shutdownable = userStream.federatedPublic(userStreamHandler);
+      var shutdownable = userStream.federatedPublic(userStreamHandler); // todo is that the feed I want to check? do users even need to follow?
+      // todo maybe userStream.user(handler) ? or maybe follow is not necessary if instances federate
 
       var userSender = new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson())
         .accessToken(token.getAccessToken()).build();
@@ -93,26 +104,29 @@ public class TootClientApp {
       return user;
     } catch (Mastodon4jRequestException e) {
       log.error("Failed to login and connect user {}", username);
-      throw e;
+      throw new RuntimeException(e);
+    } catch (NullPointerException e) {
+      log.error("No app registered yet for host {}", host);
+      throw new RuntimeException(e);
     }
   }
 
-  public static void main(String[] args) throws Mastodon4jRequestException, InterruptedException {
+  public static void main(String[] args) throws InterruptedException {
 
     addCertificate();
 
     var host = "localhost";
 
-    var toot = new TootClientApp(host);
-    var app = toot.register(CLIENT_NAME);
+    var toot = new TootClientApp();
+    var app = toot.register(host, CLIENT_NAME);
 
     List<Shutdownable> toBeGracefullyShutdowned = new ArrayList<>();
 
     var username = "user1@localhost";
-    var user1 = toot.loginUser(app, username, "2e6bbb94173971027c4207af64e061c6");
+    var user1 = toot.loginUser(host, username, "2e6bbb94173971027c4207af64e061c6");
     toBeGracefullyShutdowned.add(user1.feedStream);
 
-    var user2 = toot.loginUser(app, "user2@localhost", "91c989c55a3d5e3163d6495c264c78c2");
+    var user2 = toot.loginUser(host, "user2@localhost", "91c989c55a3d5e3163d6495c264c78c2");
     new Follows(user2.clientSender()).postRemoteFollow("user1@localhost");
     new Follows(user1.clientSender()).postRemoteFollow("user2@localhost");
 
@@ -142,5 +156,6 @@ public class TootClientApp {
   }
 
   public record User(Shutdownable feedStream, MastodonClient clientSender) {}
+  public record RegisteredApp(Apps appClient, AppRegistration registration) {}
 
 }
