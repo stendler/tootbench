@@ -1,0 +1,10 @@
+---
+- name: Shared vm setup
+  hosts: all
+  handlers:
+# Done with cloud-init
+#    - name: Install packages
+#      import_tasks: tasks/packages.yml
+    - name: Wait for cloud-init
+      import_tasks: tasks/await-cloud-init.yml
+

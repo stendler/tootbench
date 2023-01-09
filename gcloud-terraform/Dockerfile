@@ -5,7 +5,7 @@ WORKDIR /home/cloudsdk/
 VOLUME /home/cloudsdk/.config
 RUN chown -R cloudsdk /home/cloudsdk/.config
 
-RUN apk update && apk add terraform rsync
+RUN apk update && apk add terraform rsync ansible
 
 USER cloudsdk
 
