@@ -79,8 +79,6 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
 ```
 
 ## TODO
-- tootctl script to subscribe all users to a single user
-- script to loop through a users.txt subscribing everyone to everyone
 - client
   - one looping through all user postStatus handles
   - checking time after each loop: either wait or warn, that the wanted timing cannot be kept
@@ -99,6 +97,8 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
   - multiple instances in terraform
   - configure instances to federate with each other
   - multiple instances in scripts
+    - subscribe to users of other instances
+    - await: wait for startup of client(s) and all instances
 - docker-compose: limit resources / set min reserved
 
 
