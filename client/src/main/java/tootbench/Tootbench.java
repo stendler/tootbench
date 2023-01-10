@@ -34,6 +34,8 @@ public class Tootbench {
 
   public Tootbench(String clientName) {
     this.clientName = clientName;
+
+    Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
   }
 
   public Tootbench() {
@@ -98,6 +100,11 @@ public class Tootbench {
     }
   }
 
+  public void shutdown() {
+    users.forEach(user -> user.feedStream.shutdown());
+  }
+
+  public record UserCreds(AppRegistration client, String token) {}
   public record User(Shutdownable feedStream, MastodonClient clientSender) {}
   public record RegisteredApp(Apps appClient, AppRegistration registration) {}
 

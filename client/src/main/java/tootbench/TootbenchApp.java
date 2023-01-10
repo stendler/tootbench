@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static tootbench.Tootbench.CLIENT_NAME;
 
 @Slf4j
 public class TootbenchApp {
@@ -117,17 +116,20 @@ public class TootbenchApp {
 
     addCertificate();
 
+    var tootbench = new Tootbench();
+
     var argBuffer = new StringBuilder();
     Arrays.stream(args).forEach(arg -> argBuffer.append(arg).append(" "));
     switch (argBuffer.toString()) {
       case String s when s.contains("--run") -> {
-        var tootbench = new Tootbench();
         login(tootbench);
         run(tootbench);
       }
-      case String s when s.contains("--login") -> login(new Tootbench());
+      case String s when s.contains("--login") -> login(tootbench);
       case default -> test();
     }
 
+    log.info("shutting down...");
+    tootbench.shutdown();
   }
 }
