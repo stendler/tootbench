@@ -31,6 +31,22 @@
           <groupId>com.google.code.gson</groupId>
           <artifactId>gson</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.github.sys1yagi.mastodon4j</groupId>
+          <artifactId>mastodon4j-rx</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.github.sys1yagi.mastodon4j</groupId>
+          <artifactId>sample</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.github.sys1yagi.mastodon4j</groupId>
+          <artifactId>sample-kotlin</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.reactivex</groupId>
+          <artifactId>rxjava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <!-- patch outdated mastodon4j dependency -->
