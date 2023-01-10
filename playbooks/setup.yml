@@ -1,10 +1,27 @@
 ---
+- name: Wait for SSH
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: wait
+      wait_for_connection:
+        timeout: 120
+
 - name: Shared vm setup
   hosts: all
-  handlers:
-# Done with cloud-init
-#    - name: Install packages
-#      import_tasks: tasks/packages.yml
-    - name: Wait for cloud-init
-      import_tasks: tasks/await-cloud-init.yml
+  tasks:
+    # https://docs.ansible.com/ansible/latest/collections/community/general/cloud_init_data_facts_module.html
+    - name: Gather all facts of cloud init
+      community.general.cloud_init_data_facts:
+      register: result
 
+    - ansible.builtin.debug:
+        var: result
+
+    - name: Wait for cloud init to finish
+      community.general.cloud_init_data_facts:
+        filter: status
+      register: res
+      until: "res.cloud_init_data_facts.status.v1.stage is defined and not res.cloud_init_data_facts.status.v1.stage"
+      retries: 50
+      delay: 5
