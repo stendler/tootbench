@@ -1,0 +1,10 @@
+---
+- name: Setup and run Mastodon on the instances
+  hosts: instance
+  tasks:
+    # todo monitoring
+    - name: Start mastodon containers
+      command:
+        chdir: /home/ansible
+        cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon up --wait"
+
