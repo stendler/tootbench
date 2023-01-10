@@ -9,8 +9,6 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <maven.compiler.source>19</maven.compiler.source>
-    <maven.compiler.target>19</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -87,6 +85,11 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.10.1</version>
+        <configuration>
+          <source>19</source>
+          <target>19</target>
+          <compilerArgs>--enable-preview</compilerArgs><!-- enable switch pattern matching -->
+        </configuration>
       </plugin>
 
       <plugin>
@@ -95,7 +98,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>tootbench.TootClientApp</mainClass>
+              <mainClass>tootbench.TootbenchApp</mainClass>
               <addClasspath>true</addClasspath>
               <classpathPrefix>lib/</classpathPrefix>
             </manifest>
