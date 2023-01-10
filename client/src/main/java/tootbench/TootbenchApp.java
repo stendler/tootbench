@@ -17,8 +17,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -108,28 +108,33 @@ public class TootbenchApp {
     // todo safe user token, and registered client id and secret to file
   }
 
-  public static void run(Tootbench client) {
-
-  }
-
   public static void main(String[] args) {
 
     addCertificate();
 
-    var tootbench = new Tootbench();
-
-    var argBuffer = new StringBuilder();
-    Arrays.stream(args).forEach(arg -> argBuffer.append(arg).append(" "));
-    switch (argBuffer.toString()) {
-      case String s when s.contains("--run") -> {
-        login(tootbench);
-        run(tootbench);
+    if (args.length > 0) {
+      var tootbench = new Tootbench();
+      switch (args[0]) {
+        case String s when s.contains("--run") -> {
+          login(tootbench);
+          tootbench.start();
+          try {
+            Thread.sleep(Duration.ofSeconds(10)); // todo make duration configurable
+          } catch (InterruptedException ignored) {
+          }
+        }
+        case String s when s.contains("--login") -> login(tootbench);
+        case default -> {
+          log.error("Unknown parameters.");
+          System.exit(1);
+        }
       }
-      case String s when s.contains("--login") -> login(tootbench);
-      case default -> test();
+
+      log.info("shutting down...");
+      tootbench.shutdown();
+    } else {
+      test();
     }
 
-    log.info("shutting down...");
-    tootbench.shutdown();
   }
 }

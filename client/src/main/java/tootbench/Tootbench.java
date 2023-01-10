@@ -4,9 +4,11 @@ import com.google.gson.Gson;
 import com.sys1yagi.mastodon4j.MastodonClient;
 import com.sys1yagi.mastodon4j.api.Scope;
 import com.sys1yagi.mastodon4j.api.Shutdownable;
+import com.sys1yagi.mastodon4j.api.entity.Status;
 import com.sys1yagi.mastodon4j.api.entity.auth.AppRegistration;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import com.sys1yagi.mastodon4j.api.method.Apps;
+import com.sys1yagi.mastodon4j.api.method.Statuses;
 import com.sys1yagi.mastodon4j.api.method.Streaming;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -14,10 +16,10 @@ import okhttp3.OkHttpClient;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -28,9 +30,10 @@ public class Tootbench {
 
   private final Map<String, RegisteredApp> hostAppClients = new HashMap<>();
 
-  private final TootLoggingHandler userStreamHandler = new TootLoggingHandler();
-
   private final List<User> users = new ArrayList<>();
+
+  private volatile boolean running = false;
+  private final Thread runThread = new Thread(this::runLoop, "tootbench");
 
   public Tootbench(String clientName) {
     this.clientName = clientName;
@@ -81,7 +84,7 @@ public class Tootbench {
       log.trace("create stream");
       var userStream = new Streaming(userReceiver);
       log.trace("start streaming");
-      var shutdownable = userStream.federatedPublic(userStreamHandler); // todo is that the feed I want to check? do users even need to follow?
+      var shutdownable = userStream.federatedPublic(new TootLoggingHandler(username)); // todo is that the feed I want to check? do users even need to follow?
       // todo maybe userStream.user(handler) ? or maybe follow is not necessary if instances federate
       // todo only open one feed per host (at least for the federatedPublic one)
 
@@ -100,11 +103,56 @@ public class Tootbench {
     }
   }
 
+  CompletableFuture<Optional<Status>> post(Statuses user) {
+    return CompletableFuture.supplyAsync(() -> {
+      try {
+        return Optional.of(user.postStatus("My cool status", null, null, false, null).execute());
+      } catch (Mastodon4jRequestException e) {
+        return Optional.empty();
+      }
+    });
+  }
+
+  private void runLoop() {
+    List<Statuses> userStatus = users.stream().map(User::clientSender).map(Statuses::new).toList();
+    running = true;
+    log.info("Starting run loop");
+
+    while (running) {
+      Instant start = Instant.now();
+      for (Statuses user : userStatus) {
+        post(user).thenAccept(status -> status.ifPresentOrElse(TootLoggingHandler::logPostResponse,
+          () -> log.warn("User post error. The user may be rate limited?")));
+        // todo maybe add futures to a set and delete themselves on complete --> to know how many are unfinished.
+      }
+
+      Duration elapsed = Duration.between(start, Instant.now());
+      if (elapsed.toSeconds() >= 1) {
+        log.warn("one run loop took longer than a second: {},{}", elapsed.toSeconds(), elapsed.toMillisPart());
+      }
+      try {
+        Thread.sleep(Duration.ofSeconds(1).minus(elapsed)); // always wait for a second in total
+      } catch (InterruptedException e) {
+        log.error("Run loop interrupted, terminating...");
+        running = false;
+      }
+    }
+    log.info("Run loop done");
+  }
+
+  public void start() {
+    runThread.start();
+  }
+
   public void shutdown() {
+    running = false;
+    try {
+      runThread.join();
+    } catch (InterruptedException ignored) {}
     users.forEach(user -> user.feedStream.shutdown());
   }
 
-  public record UserCreds(AppRegistration client, String token) {}
+  public record UserCreds(String username, AppRegistration client, String token) {}
   public record User(Shutdownable feedStream, MastodonClient clientSender) {}
   public record RegisteredApp(Apps appClient, AppRegistration registration) {}
 

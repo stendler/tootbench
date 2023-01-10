@@ -12,6 +12,12 @@ import java.util.Optional;
 @Slf4j
 public class TootLoggingHandler implements Handler {
 
+  private final String username;
+
+  TootLoggingHandler(String username) {
+    this.username = username;
+  }
+
   @Override
   public void onDelete(long l) {
     log.debug("Delete? {}", l);
@@ -29,9 +35,14 @@ public class TootLoggingHandler implements Handler {
 
   @Override
   public void onStatus(@NotNull Status status) {
-    log.info("Toot\t{}\t{}",
+    log.info("{} received Toot\tfrom {}\t{}",
+      username,
       Optional.ofNullable(status.getAccount()).map(Account::getAcct).orElse("null"),
       status.getCreatedAt()
     );
+  }
+
+  public static void logPostResponse(@NotNull Status status) {
+
   }
 }
