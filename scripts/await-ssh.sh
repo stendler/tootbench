@@ -20,15 +20,15 @@ for instance in $(cat plans/single-instance/hosts); do
 
 done
 
+# wait for ansible to be able to ssh and cloud-init to finish
+ansible-playbook -i hosts.ini playbooks/await-init.yml
 
-ansible-playbook -i hosts.ini playbooks/setup.yml
-# todo move everything below here (and the cloud-init runcmd's into ansible)
-
-# make mastodon publicly available
-# todo make sure the file is ready to be edited
+# make mastodon publicly available (in single instance deployment)
 ssh mstdn-single-instance sed -i \"/^ALTERNATE_DOMAINS=/ s/$/$(cat plans/single-instance/ip)/\" .env.production
 #(ssh mstdn-single-instance tail -f /var/log/cloud-init-output.log &) | awk '{print}; /cloud-init has finished/{exit}'
-ansible-playbook -i hosts.ini playbooks/setup-instance.yml
 
-gcloud compute ssh controller --ssh-key-file=.ssh/id_ed25519 --command="true" # get host keys
-ssh controller https mstdn-single-instance --ignore-stdin
+# setup client and instances
+ansible-playbook -i hosts.ini playbooks/setup.yml
+
+# verify that instance is reachable from the client
+ssh controller https mstdn-single-instance/v1/instance --ignore-stdin

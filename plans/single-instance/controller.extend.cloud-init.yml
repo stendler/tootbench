@@ -3,7 +3,7 @@
 
 packages:
   - httpie
-  - toot
+  - openjdk-19-jre-headless
 
 runcmd:
   - [ curl, -H, "Tags: rocket", -H, "Title: CSB {{ v1.local_hostname }} deployed", -d, "{{ v1.local_hostname }}", "https://ntfy.sh/cloud-service-benchmarking-22" ]

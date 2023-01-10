@@ -73,7 +73,8 @@ public class TootClientApp {
   }
 
   public void createUsersFromFile(Path userFile) throws IOException {
-    String host = userFile.getFileName().toString().split("\\.")[0];
+    String host = userFile.getName(userFile.getNameCount() - 2).toString(); // should be the folder name
+    log.debug("Logging in users of host {}", host);
     try (Stream<String> lines = Files.lines(userFile)) {
       lines.map(s -> s.split(" "))
         .filter(strings -> strings.length >= 3)
@@ -115,7 +116,7 @@ public class TootClientApp {
 
     addCertificate();
 
-    var host = "localhost";
+    var host = "mstdn-single-instance";
 
     var toot = new TootClientApp();
     var app = toot.register(host, CLIENT_NAME);

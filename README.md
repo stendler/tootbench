@@ -67,7 +67,7 @@ ssh-keygen -f .ssh/id_ed25519 -t ed25519
 docker build -t minica minica/. # if not done already
 # after running once...
 openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/minica.der
-
+(cd client && mvn package)
 ```
 
 #### Deploy single instance
@@ -83,8 +83,6 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
   - one looping through all user postStatus handles
   - checking time after each loop: either wait or warn, that the wanted timing cannot be kept
   - (maybe run each postStatus on its own thread though) (futures?)
-- ntfy that users.txt is complete (or even its contents); subscribe to on controller (not client though)
-- wait for and upload these to the client node
 - package the client for docker --> github container registry
 - metric collection: system stats - vmstat(?) - send metrics directly to controller to avoid disk logging? -> configurable?
   - docker image & container - limit resources
@@ -104,6 +102,7 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
 
 - use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4
 - client vms for load generation instructed from the controller
+  - single client vm for now, since its rate limited anyway
 
 - slide: show a diagram/architecture
 

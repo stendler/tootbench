@@ -36,7 +36,7 @@ runcmd:
   - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, precompile-assets ]
   - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, db-migrate ]
   - [ cd, /home/ansible ]
-  - [ sh, createAdmin.sh ]
+  - [ sh, createAdmin.sh ] # todo maybe move into ansible
   - [ sh, createUser.sh ]
 #  - [ bash, -c, "hostname={{ v1.local_hostname }} docker compose --project-directory /home/ansible/ --project-name mastodon up --wait" ]
   - [ curl, -H, "Tags: elephant", -H, "Title: CSB {{ v1.local_hostname }} deployed", -d, "{{ v1.local_hostname }} running mastodon now", "https://ntfy.sh/cloud-service-benchmarking-22" ]
