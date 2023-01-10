@@ -24,10 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -112,10 +109,7 @@ public class TootClientApp {
     }
   }
 
-  public static void main(String[] args) throws InterruptedException {
-
-    addCertificate();
-
+  public static void test() {
     var host = "mstdn-single-instance";
 
     var toot = new TootClientApp();
@@ -145,6 +139,8 @@ public class TootClientApp {
       log.error("Request error. Probably rate limit exceeded. Shutting down...");
       toBeGracefullyShutdowned.forEach(Shutdownable::shutdown);
       log.debug(e.getResponse().toString());
+    } catch (InterruptedException e) {
+      log.error("Sending interrupted.");
     }
 
     try {
@@ -154,6 +150,31 @@ public class TootClientApp {
     } catch (Mastodon4jRequestException e) {
       log.error("user 2 cannot post either...");
     }
+  }
+
+  /**
+   * todo Log users in and safe tokens and client id & secret to file
+   */
+  public static void login() {
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+
+  public static void run() {
+
+  }
+
+  public static void main(String[] args) {
+
+    addCertificate();
+
+    var argBuffer = new StringBuilder();
+    Arrays.stream(args).forEach(arg -> argBuffer.append(arg).append(" "));
+    switch (argBuffer.toString()) {
+      case String s when s.contains("--run") -> run();
+      case String s when s.contains("--login") -> login();
+      case default -> test();
+    }
+
   }
 
   public record User(Shutdownable feedStream, MastodonClient clientSender) {}
