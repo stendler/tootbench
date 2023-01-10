@@ -2,13 +2,15 @@ package tootbench;
 
 import com.sys1yagi.mastodon4j.api.Shutdownable;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
-import com.sys1yagi.mastodon4j.api.method.Follows;
 import com.sys1yagi.mastodon4j.api.method.Statuses;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -42,7 +44,7 @@ public class TootbenchApp {
     var host = "mstdn-single-instance";
 
     var toot = new Tootbench();
-    var app = toot.register(host, CLIENT_NAME);
+    var app = toot.register(host);
 
     List<Shutdownable> toBeGracefullyShutdowned = new ArrayList<>();
 
@@ -51,8 +53,6 @@ public class TootbenchApp {
     toBeGracefullyShutdowned.add(user1.feedStream());
 
     var user2 = toot.loginUser(host, "user2@localhost", "91c989c55a3d5e3163d6495c264c78c2");
-    new Follows(user2.clientSender()).postRemoteFollow("user1@localhost");
-    new Follows(user1.clientSender()).postRemoteFollow("user2@localhost");
 
     try {
       var userSender = new Statuses(user1.clientSender());
@@ -84,11 +84,32 @@ public class TootbenchApp {
   /**
    * todo Log users in and safe tokens and client id & secret to file
    */
-  public static void login() {
-    throw new UnsupportedOperationException("Not yet implemented");
+  public static void login(Tootbench client) {
+    // find files/Path[s] to createUsers from
+    var dir = new File("users");
+    try (var dirs = Files.newDirectoryStream(dir.toPath())) {
+      for (Path hostDir : dirs) {
+        try (var users = Files.newDirectoryStream(hostDir)) {
+          if (users != null) {
+            users.forEach(userFile -> {
+              if (userFile.getFileName().toString().equals("users.txt")) {
+                try {
+                  client.createUsersFromFile(userFile);
+                } catch (IOException e) {
+                  log.warn("IO error on reading file {}", userFile);
+                }
+              }
+            });
+          }
+        }
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    // todo safe user token, and registered client id and secret to file
   }
 
-  public static void run() {
+  public static void run(Tootbench client) {
 
   }
 
@@ -99,8 +120,12 @@ public class TootbenchApp {
     var argBuffer = new StringBuilder();
     Arrays.stream(args).forEach(arg -> argBuffer.append(arg).append(" "));
     switch (argBuffer.toString()) {
-      case String s when s.contains("--run") -> run();
-      case String s when s.contains("--login") -> login();
+      case String s when s.contains("--run") -> {
+        var tootbench = new Tootbench();
+        login(tootbench);
+        run(tootbench);
+      }
+      case String s when s.contains("--login") -> login(new Tootbench());
       case default -> test();
     }
 

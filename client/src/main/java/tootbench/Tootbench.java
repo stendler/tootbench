@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 public class Tootbench {
 
   public static final String CLIENT_NAME = "Tootbenchamun";
+  private final String clientName;
 
   private final Map<String, RegisteredApp> hostAppClients = new HashMap<>();
 
@@ -31,8 +32,15 @@ public class Tootbench {
 
   private final List<User> users = new ArrayList<>();
 
+  public Tootbench(String clientName) {
+    this.clientName = clientName;
+  }
 
-  public RegisteredApp register(String host, String clientName) {
+  public Tootbench() {
+    this(CLIENT_NAME);
+  }
+
+  public RegisteredApp register(String host) {
     try {
       log.debug("registering...");
       var apps = new Apps(new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson()).build());
@@ -50,6 +58,7 @@ public class Tootbench {
 
   public void createUsersFromFile(Path userFile) throws IOException {
     String host = userFile.getName(userFile.getNameCount() - 2).toString(); // should be the folder name
+    hostAppClients.putIfAbsent(host, register(host)); // todo maybe create client per user --> move to loginUser
     log.debug("Logging in users of host {}", host);
     try (Stream<String> lines = Files.lines(userFile)) {
       lines.map(s -> s.split(" "))
@@ -62,7 +71,7 @@ public class Tootbench {
     try {
       var client = hostAppClients.get(host);
       var token = client.appClient.postUserNameAndPassword(client.registration.getClientId(), client.registration.getClientSecret(), new Scope(Scope.Name.ALL), username, password).execute();
-      log.debug("User {} logged in", username);
+      log.debug("User {} logged into {}", username, host);
       var userReceiver = new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson())
         .accessToken(token.getAccessToken())
         .useStreamingApi().build();
@@ -72,6 +81,7 @@ public class Tootbench {
       log.trace("start streaming");
       var shutdownable = userStream.federatedPublic(userStreamHandler); // todo is that the feed I want to check? do users even need to follow?
       // todo maybe userStream.user(handler) ? or maybe follow is not necessary if instances federate
+      // todo only open one feed per host (at least for the federatedPublic one)
 
       var userSender = new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson())
         .accessToken(token.getAccessToken()).build();
