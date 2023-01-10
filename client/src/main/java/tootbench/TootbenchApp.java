@@ -115,7 +115,7 @@ public class TootbenchApp {
     if (args.length > 0) {
       var tootbench = new Tootbench();
       switch (args[0]) {
-        case String s when s.contains("--run") -> {
+        case "--run" -> {
           login(tootbench);
           tootbench.start();
           try {
@@ -123,8 +123,8 @@ public class TootbenchApp {
           } catch (InterruptedException ignored) {
           }
         }
-        case String s when s.contains("--login") -> login(tootbench);
-        case default -> {
+        case "--login" -> login(tootbench);
+        default -> {
           log.error("Unknown parameters.");
           System.exit(1);
         }

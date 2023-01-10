@@ -88,7 +88,6 @@
         <configuration>
           <source>19</source>
           <target>19</target>
-          <compilerArgs>--enable-preview</compilerArgs><!-- enable switch pattern matching -->
         </configuration>
       </plugin>
 
