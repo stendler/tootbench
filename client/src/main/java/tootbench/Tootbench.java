@@ -36,7 +36,7 @@ public class Tootbench {
 
   private final List<User> users = new ArrayList<>();
 
-  private final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+  private final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(2*Runtime.getRuntime().availableProcessors(), runnable -> { var t = new Thread(runnable, CLIENT_NAME); t.setDaemon(true); return t; });
 
   public Tootbench(String clientName) {
     this.clientName = clientName;
