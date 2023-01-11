@@ -21,12 +21,12 @@ public class TootLoggingHandler implements Handler {
 
   @Override
   public void onDelete(long l) {
-    log.debug("Delete? {}", l);
+    log.trace("Delete? {}", l);
   }
 
   @Override
   public void onNotification(@NotNull Notification notification) {
-    log.info("Notification\t{}\t{}\t{}\t{}",
+    log.trace("Notification\t{}\t{}\t{}\t{}",
       Optional.ofNullable(notification.getAccount()).map(Account::getDisplayName).orElse("null"),
       notification.getCreatedAt(),
       Optional.ofNullable(notification.getStatus()).map(Status::getAccount).map(Account::getAcct).orElse("null"),
@@ -36,7 +36,7 @@ public class TootLoggingHandler implements Handler {
 
   @Override
   public void onStatus(@NotNull Status status) {
-    log.info("{} received Toot\tfrom {}\t{}",
+    log.trace("{} received Toot\tfrom {}\t{}",
       username,
       Optional.ofNullable(status.getAccount()).map(Account::getAcct).orElse("null"),
       status.getCreatedAt()
@@ -44,7 +44,7 @@ public class TootLoggingHandler implements Handler {
   }
 
   public static void logPostResponse(LocalDateTime requestedOn, Status status) {
-    log.info("{} tooted on {} and server created on {}",
+    log.trace("{} tooted on {} and server created on {}",
       Optional.ofNullable(status.getAccount()).map(Account::getAcct).orElse("null"),
       requestedOn,
       status.getCreatedAt());

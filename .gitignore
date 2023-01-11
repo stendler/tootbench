@@ -9,3 +9,4 @@ minica.der
 admin.txt
 *users.txt
 hosts.ini
+*.log.gz
