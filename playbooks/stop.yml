@@ -1,0 +1,46 @@
+---
+- name: Stopping monitoring
+  hosts: instance
+  become: yes
+  tasks:
+    - name: Stopping vmstat monitoring service
+      systemd:
+        name: vmstat.service
+        state: stopped
+    - name: Stopping iostat cpu monitoring service
+      systemd:
+        name: iostat-cpu.service
+        state: stopped
+    - name: Stopping iostat disk monitoring service
+      systemd:
+        name: iostat-disk.service
+        state: stopped
+    - name: Stopping mpstat monitoring service
+      systemd:
+        name: mpstat.service
+        state: stopped
+    - name: Stopping docker stats monitoring service
+      systemd:
+        name: docker-stats.service
+        state: stopped
+    - name: Stopping docker stats monitoring service timer
+      systemd:
+        name: docker-stats.timer
+        state: stopped
+
+- name: Stopping Mastodon
+  hosts: instance
+  tasks:
+    - name: Stop mastodon containers
+      command:
+        chdir: /home/ansible
+        cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon down --volumes"
+
+- name: Stopping Benchmark
+  hosts: client
+  become: yes
+  tasks:
+    - name: Stopping tootbench client
+      systemd:
+        name: tootbench.service
+        state: stopped
