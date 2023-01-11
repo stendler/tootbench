@@ -1,38 +1,42 @@
 ---
-- name: Setup and run Mastodon on the instances
+- name: Install monitoring services
   hosts: instance
+  become: yes
   tasks:
-    # todo monitoring
     # (continuos) vmstat --unit M --one-header --timestamp 5
     - name: Install vmstat service
       copy:
         src: vmstat.service
-        dest: .config/systemd/user/
+        dest: /etc/systemd/system/
     # iostat -c 5
     - name: Install iostat-cpu service
       copy:
         src: iostat-cpu.service
-        dest: .config/systemd/user/
+        dest: /etc/systemd/system/
     # iostat -mdN sda 5
     - name: Install iostat-disk service
       copy:
         src: iostat-disk.service
-        dest: .config/systemd/user/
+        dest: /etc/systemd/system/
     # mpstat -P ALL 5
     - name: Install mpstat service
       copy:
         src: mpstat.service
-        dest: .config/systemd/user/
+        dest: /etc/systemd/system/
     # (systemd timer) docker stats --no-stream
     - name: Install docker-stats service
       copy:
         src: docker-stats.service
-        dest: .config/systemd/user/
+        dest: /etc/systemd/system/
     - name: Install docker-stats timer
       copy:
         src: docker-stats.timer
-        dest: .config/systemd/user/
+        dest: /etc/systemd/system/
     # (maybe?) netstat --continuous --tcp --udp
+
+- name: Setup and run Mastodon on the instances
+  hosts: instance
+  tasks:
     # todo add users based on config
     - name: Add util scripts
       copy:
@@ -50,7 +54,6 @@
         cmd: sh createUser.sh 10
       args:
         creates: users.txt
-
     - name: Collect user credentials
       fetch:
         src: users.txt
@@ -59,30 +62,31 @@
 - name: Setup clients
   hosts: client
   tasks:
-
     - name: Distribute app dependencies
       copy:
         src: lib
         dest: app/
         local_follow: true
-
     - name: Distribute app
       copy:
         src: client.jar
         dest: app/client.jar
         local_follow: true
-
-    - name: Install app service
-      copy:
-        src: tootbench.service
-        dest: .config/systemd/user/
-
     - name: Distribute user credentials
       copy:
         src: users
         dest: ./
       # todo: if multiple clients, then split files by number of clients
 
-    # todo start client (and thus Benchmark)
+- name: Setup tootbench
+  hosts: client
+  become: yes
+  tasks:
+    - name: Install app service
+      copy:
+        src: tootbench.service
+        dest: /etc/systemd/system/
+
+    # todo start client (and thus Benchmark) --> start.yml
     # todo wait for specified time OR setup a systemd timer on the client stopping the client and sending a ntfy
     # todo stop clients & benchmark --> stop.yml playbook

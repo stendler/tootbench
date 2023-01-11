@@ -1,45 +1,46 @@
 ---
-- name: Start monitoring & Mastodon instances
+- name: Start monitoring
   hosts: instance
+  become: yes
   tasks:
     - name: Start vmstat monitoring service
       systemd:
         name: vmstat.service
-        scope: user
         state: started
     - name: Start iostat cpu monitoring service
       systemd:
         name: iostat-cpu.service
-        scope: user
         state: started
     - name: Start iostat disk monitoring service
       systemd:
         name: iostat-disk.service
-        scope: user
         state: started
     - name: Start mpstat monitoring service
       systemd:
         name: mpstat.service
-        scope: user
+        state: started
+    - name: Start docker stats monitoring service
+      systemd:
+        name: docker-stats.service
         state: started
     - name: Start docker stats monitoring service timer
       systemd:
         name: docker-stats.timer
-        scope: user
         state: started
 
+- name: Start Mastodon
+  hosts: instance
+  tasks:
     - name: Start mastodon containers
       command:
         chdir: /home/ansible
         cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon up --wait"
 
-
 - name: Start Benchmark
   hosts: client
+  become: yes
   tasks:
     - name: Start tootbench client
       systemd:
         name: tootbench.service
-        scope: user
         state: started
-
