@@ -3,6 +3,12 @@
   hosts: instance
   tasks:
     # todo monitoring
+    # (continuos) vmstat --unit M --one-header --timestamp 1
+    # (systemd timer) docker stats --no-stream
+    # (maybe?) netstat --continuous --tcp --udp
+    # iostat -c 5
+    # iostat -mdN sda 5
+    # mpstat -P ALL 5
     # todo add users based on config
     - name: Start mastodon containers
       command:
@@ -13,7 +19,6 @@
       fetch:
         src: users.txt
         dest: users/
-    # collect user files
 
 - name: Setup clients
   hosts: client
