@@ -1,0 +1,29 @@
+---
+- name: Clean monitoring logs
+  hosts: instance
+  tasks:
+    - name: Remove mastodon containers
+      command:
+        chdir: /home/ansible
+        cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon rm --volumes --force"
+    - name: Delete Postgres Database
+      become: yes
+      file:
+        state: absent
+        path: /home/ansible/mastodon/postgres14
+    - name: Delete Redis Database
+      become: yes
+      file:
+        state: absent
+        path: /home/ansible/mastodon/redis
+    - name: Vacuum journal
+      become: yes
+      shell: "journalctl --rotate --vacuum-time=1s"
+
+- name: Clean Tootbench Benchmark log
+  hosts: client
+  tasks:
+    - name: Delete Tootbench client log
+      file:
+        state: absent
+        path: tootbench.log.gz
