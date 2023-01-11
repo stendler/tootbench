@@ -18,15 +18,15 @@
     - name: Create log folder
       shell: "mkdir -p logs/{{ hostvars['localhost']['timestamp'] }}"
     - name: Write vmstat service monitoring log
-      shell: "journalctl -u vmstat > logs/{{ hostvars['localhost']['timestamp'] }}/vmstat.log"
+      shell: "journalctl -u vmstat | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/vmstat.log.gz"
     - name: Write iostat cpu service monitoring log
-      shell: "journalctl -u iostat-cpu > logs/{{ hostvars['localhost']['timestamp'] }}/iostat-cpu.log"
+      shell: "journalctl -u iostat-cpu | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/iostat-cpu.log.gz"
     - name: Write iostat disk service monitoring log
-      shell: "journalctl -u iostat-disk > logs/{{ hostvars['localhost']['timestamp'] }}/iostat-disk.log"
+      shell: "journalctl -u iostat-disk | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/iostat-disk.log.gz"
     - name: Write mpstat service monitoring log
-      shell: "journalctl -u mpstat > logs/{{ hostvars['localhost']['timestamp'] }}/mpstat.log"
+      shell: "journalctl -u mpstat | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/mpstat.log.gz"
     - name: Write docker stats service monitoring log
-      shell: "journalctl -u docker-stats > logs/{{ hostvars['localhost']['timestamp'] }}/docker-stats.log"
+      shell: "journalctl -u docker-stats | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/docker-stats.log.gz"
     - name: Collect logs
       synchronize:
         mode: pull
