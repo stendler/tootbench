@@ -8,7 +8,7 @@ Create the `.env.production` file (especially the secrets and keys):
 
 ```sh
 # generate keys for SECRET_KEY_BASE and OTP_SECRET
-docker run -it --rm tootsuite/mastodon rake secret
+docker run -it --rm tootsuite/mastodon bundle exec rake secret
 # generate webpush VAPI key
 docker run --rm -i tootsuite/mastodon bash -c "bundle install 1>&2 && bundle exec rake mastodon:webpush:generate_vapid_key"
 ```
@@ -65,10 +65,19 @@ gcloud auth application-default login
 gcloud auth application-default set-quota-project $GCLOUD_PROJECT
 ssh-keygen -f .ssh/id_ed25519 -t ed25519
 docker build -t minica minica/. # if not done already
-# after running once...
+docker run --rm -v "$(pwd)/cert:/cert" minica --domains localhost # if not done already to generate the root cert
 openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/minica.der
-(cd client && mvn package)
+(cd client && mvn package) # build the app
+echo "secrets:" > playbooks/files/secrets.yaml
+# repeat as much as maximum parallel instances to be deployed
+max_instances=10
+for i in $(seq $max_instances); do
+  echo "Generating instance secrets [$i/$max_instances]"
+  ./scripts/secrets.sh >> playbooks/files/secrets.yaml
+done
 ```
+
+
 
 #### Deploy single instance
 
@@ -84,14 +93,8 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
   - configure instances to federate with each other
   - multiple instances in scripts
     - subscribe to users of other instances
-    - await: wait for startup of client(s) and all instances
 - client
-  - only one stream handle per instance
-- scenario configuration: tfvars for machine_type, number of users per instance, number of instances
-  - machine_type
-  - number of users per instance (may differ for each instance)
-  - always subscribe everyone to everyone?
-  - client config: ~~messages per second per user?~~ is limited anyway. So go full as fast as possible (1 per second I think)
+  - only one stream handle per instance? --> configurable number of posting and/or listening users
 - docker-compose: limit resources / set min reserved
 
 - use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4
