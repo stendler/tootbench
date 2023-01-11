@@ -79,6 +79,12 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
 ```
 
 ## TODO
+- federate
+  - multiple instances in terraform
+  - configure instances to federate with each other
+  - multiple instances in scripts
+    - subscribe to users of other instances
+    - await: wait for startup of client(s) and all instances
 - client
   - only one stream handle per instance
 - scenario configuration: tfvars for machine_type, number of users per instance, number of instances
@@ -86,14 +92,7 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
   - number of users per instance (may differ for each instance)
   - always subscribe everyone to everyone?
   - client config: ~~messages per second per user?~~ is limited anyway. So go full as fast as possible (1 per second I think)
-- federate
-  - multiple instances in terraform
-  - configure instances to federate with each other
-  - multiple instances in scripts
-    - subscribe to users of other instances
-    - await: wait for startup of client(s) and all instances
 - docker-compose: limit resources / set min reserved
-
 
 - use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4
 - client vms for load generation instructed from the controller
@@ -103,6 +102,7 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
 
 ## Future ToDos
 
+- metric services: awk only relevant lines
 - user avatars (differing per user globally) --> load
 - add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
 

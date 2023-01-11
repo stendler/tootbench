@@ -30,6 +30,4 @@ runcmd:
   - [ git, clone, --branch, v4.0.2, --depth, "1", "https://github.com/mastodon/mastodon.git", /home/ansible/mastodon ]
   - [ chown, -R, "ansible:ansible", /home/ansible ]
   - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, pull, --quiet ]
-  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, precompile-assets ]
-  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, run, --rm, db-migrate ]
   - [ curl, -H, "Tags: elephant", -H, "Title: CSB {{ v1.local_hostname }} deployed", -d, "{{ v1.local_hostname }} running mastodon now", "https://ntfy.sh/cloud-service-benchmarking-22" ]

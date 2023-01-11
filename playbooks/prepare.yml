@@ -37,13 +37,22 @@
 - name: Setup and run Mastodon on the instances
   hosts: instance
   tasks:
+    - name: Pre-compile Mastodon assets
+      command:
+#        chdir: /home/ansible
+        cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon run --rm precompile-assets"
+    - name: Migrate Mastodon database
+      command:
+#        chdir: /home/ansible
+        cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon run --rm db-migrate"
+      args:
+        creates: mastodon/postgres14
     # todo add users based on config
     - name: Add util scripts
       copy:
         src: scripts/
         dest: .
         local_follow: true
-
     - name: Create Mastodon admin user
       command:
         cmd: sh createAdminUser.sh
