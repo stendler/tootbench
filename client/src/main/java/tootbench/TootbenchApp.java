@@ -118,9 +118,13 @@ public class TootbenchApp {
         case "--run" -> {
           login(tootbench);
           tootbench.start();
+          log.info("Started");
           try {
             Thread.sleep(Duration.ofSeconds(10)); // todo make duration configurable
-          } catch (InterruptedException ignored) {
+            log.info("Sleeping done");
+          } catch (InterruptedException e) {
+            log.info("Sleeping cancelled");
+            tootbench.shutdown();
           }
         }
         case "--login" -> login(tootbench);
@@ -130,8 +134,6 @@ public class TootbenchApp {
         }
       }
 
-      log.info("shutting down...");
-      tootbench.shutdown();
     } else {
       test();
     }

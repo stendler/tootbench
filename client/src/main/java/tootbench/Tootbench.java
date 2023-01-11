@@ -127,10 +127,15 @@ public class Tootbench {
   }
 
   public void shutdown() {
+    log.info("shutting down...");
     try {
-      threadPool.awaitTermination(1, SECONDS);
+     if(!threadPool.awaitTermination(1, SECONDS)) {
+       log.warn("Forcing poster shutdown...");
+       threadPool.shutdownNow();
+      }
     } catch (InterruptedException ignored) {}
     users.forEach(user -> user.feedStream.shutdown());
+    log.info("done.");
   }
 
   public record UserCreds(String username, AppRegistration client, String token) {}
