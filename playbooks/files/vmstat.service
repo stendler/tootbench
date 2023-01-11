@@ -1,0 +1,8 @@
+[Unit]
+Description=System monitoring with vmstat
+
+[Service]
+Type=simple
+ExecStart=/bin/vmstat --unit M --one-header --timestamp 5
+RemainAfterExit=no
+Restart=no

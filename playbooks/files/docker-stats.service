@@ -1,0 +1,8 @@
+[Unit]
+Description=Docker stats monitoring
+
+[Service]
+Type=oneshot
+ExecStart=/bin/docker stats --no-stream
+RemainAfterExit=no
+Restart=no

@@ -1,0 +1,8 @@
+[Unit]
+Description=CPU monitoring with mpstat
+
+[Service]
+Type=simple
+ExecStart=/bin/mpstat 5
+RemainAfterExit=no
+Restart=no

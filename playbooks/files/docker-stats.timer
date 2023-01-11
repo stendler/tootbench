@@ -1,0 +1,10 @@
+[Unit]
+Description=Continuous Docker stats monitoring
+
+[Timer]
+OnUnitInactiveSec=5
+AccuracySec=1s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,8 @@
+[Unit]
+Description=Disk monitoring with iostat
+
+[Service]
+Type=simple
+ExecStart=/bin/iostat -mdN sda 5
+RemainAfterExit=no
+Restart=no

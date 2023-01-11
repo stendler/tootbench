@@ -1,0 +1,8 @@
+[Unit]
+Description=CPU monitoring with iostat
+
+[Service]
+Type=simple
+ExecStart=/bin/iostat -c 5
+RemainAfterExit=no
+Restart=no

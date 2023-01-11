@@ -3,12 +3,36 @@
   hosts: instance
   tasks:
     # todo monitoring
-    # (continuos) vmstat --unit M --one-header --timestamp 1
-    # (systemd timer) docker stats --no-stream
-    # (maybe?) netstat --continuous --tcp --udp
+    # (continuos) vmstat --unit M --one-header --timestamp 5
+    - name: Install vmstat service
+      copy:
+        src: vmstat.service
+        dest: .config/systemd/user/
     # iostat -c 5
+    - name: Install iostat-cpu service
+      copy:
+        src: iostat-cpu.service
+        dest: .config/systemd/user/
     # iostat -mdN sda 5
+    - name: Install iostat-disk service
+      copy:
+        src: iostat-disk.service
+        dest: .config/systemd/user/
     # mpstat -P ALL 5
+    - name: Install mpstat service
+      copy:
+        src: mpstat.service
+        dest: .config/systemd/user/
+    # (systemd timer) docker stats --no-stream
+    - name: Install docker-stats service
+      copy:
+        src: docker-stats.service
+        dest: .config/systemd/user/
+    - name: Install docker-stats timer
+      copy:
+        src: docker-stats.timer
+        dest: .config/systemd/user/
+    # (maybe?) netstat --continuous --tcp --udp
     # todo add users based on config
     - name: Start mastodon containers
       command:
