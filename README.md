@@ -81,8 +81,6 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
 ## TODO
 - client
   - only one stream handle per instance
-- metric collection: system stats - vmstat(?) - send metrics directly to controller to avoid disk logging? -> configurable?
-  - docker image & container - limit resources
 - scenario configuration: tfvars for machine_type, number of users per instance, number of instances
   - machine_type
   - number of users per instance (may differ for each instance)

@@ -1,0 +1,42 @@
+---
+- hosts: localhost
+  gather_facts: true
+  tasks:
+    - name: Get current timestamp
+      set_fact:
+        timestamp: >-
+          {{ ansible_date_time.year }}-{{
+          ansible_date_time.month }}-{{ ansible_date_time.day }}T{{
+          ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{
+          ansible_date_time.second }}
+        run_once: true
+        cachable: yes
+
+- name: Write monitoring logs
+  hosts: instance
+  tasks:
+    - name: Create log folder
+      shell: "mkdir -p logs/{{ hostvars['localhost']['timestamp'] }}"
+    - name: Write vmstat service monitoring log
+      shell: "journalctl -u vmstat > logs/{{ hostvars['localhost']['timestamp'] }}/vmstat.log"
+    - name: Write iostat cpu service monitoring log
+      shell: "journalctl -u iostat-cpu > logs/{{ hostvars['localhost']['timestamp'] }}/iostat-cpu.log"
+    - name: Write iostat disk service monitoring log
+      shell: "journalctl -u iostat-disk > logs/{{ hostvars['localhost']['timestamp'] }}/iostat-disk.log"
+    - name: Write mpstat service monitoring log
+      shell: "journalctl -u mpstat > logs/{{ hostvars['localhost']['timestamp'] }}/mpstat.log"
+    - name: Write docker stats service monitoring log
+      shell: "journalctl -u docker-stats > logs/{{ hostvars['localhost']['timestamp'] }}/docker-stats.log"
+    - name: Collect logs
+      synchronize:
+        mode: pull
+        src: logs/
+        dest: logs/
+
+- name: Collect Tootbench Benchmark log
+  hosts: client
+  tasks:
+    - name: Collect tootbench client log
+      fetch:
+        src: tootbench.log.gz
+        dest: logs/{{ hostvars['localhost']['timestamp'] }}/

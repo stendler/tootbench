@@ -10,3 +10,4 @@ admin.txt
 *users.txt
 hosts.ini
 *.log.gz
+*.log
