@@ -34,6 +34,22 @@
         dest: .config/systemd/user/
     # (maybe?) netstat --continuous --tcp --udp
     # todo add users based on config
+    - name: Add util scripts
+      copy:
+        src: scripts/
+        dest: .
+        local_follow: true
+
+    - name: Create Mastodon admin user
+      command:
+        cmd: sh createAdminUser.sh
+      args:
+        creates: admin.txt
+    - name: Create Mastodon users
+      command:
+        cmd: sh createUser.sh 10
+      args:
+        creates: users.txt
 
     - name: Collect user credentials
       fetch:
@@ -56,6 +72,11 @@
         dest: app/client.jar
         local_follow: true
 
+    - name: Install app service
+      copy:
+        src: tootbench.service
+        dest: .config/systemd/user/
+
     - name: Distribute user credentials
       copy:
         src: users
@@ -64,4 +85,4 @@
 
     # todo start client (and thus Benchmark)
     # todo wait for specified time OR setup a systemd timer on the client stopping the client and sending a ntfy
-    # todo stop clients & benchmark
+    # todo stop clients & benchmark --> stop.yml playbook

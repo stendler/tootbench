@@ -37,4 +37,9 @@
 - name: Start Benchmark
   hosts: client
   tasks:
+    - name: Start tootbench client
+      systemd:
+        name: tootbench.service
+        scope: user
+        state: started
 

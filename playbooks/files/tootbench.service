@@ -1,0 +1,9 @@
+[Unit]
+Description=Tootbench load generating client
+
+[Service]
+Type=simple
+ExecStart=/bin/java -jar app/client.jar --run
+RemainAfterExit=no
+Restart=no
+ExecStopPost=/bin/curl --header "Title: Tootbench stopped" --data "$(/bin/hostname) - $(/bin/date)" 'https://ntfy.sh/cloud-service-benchmarking-22'
