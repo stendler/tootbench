@@ -7,6 +7,7 @@ import com.sys1yagi.mastodon4j.api.entity.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Slf4j
@@ -42,7 +43,10 @@ public class TootLoggingHandler implements Handler {
     );
   }
 
-  public static void logPostResponse(@NotNull Status status) {
-
+  public static void logPostResponse(LocalDateTime requestedOn, Status status) {
+    log.info("{} tooted on {} and server created on {}",
+      Optional.ofNullable(status.getAccount()).map(Account::getAcct).orElse("null"),
+      requestedOn,
+      status.getCreatedAt());
   }
 }

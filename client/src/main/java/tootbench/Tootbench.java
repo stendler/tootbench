@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.sys1yagi.mastodon4j.MastodonClient;
 import com.sys1yagi.mastodon4j.api.Scope;
 import com.sys1yagi.mastodon4j.api.Shutdownable;
-import com.sys1yagi.mastodon4j.api.entity.Status;
 import com.sys1yagi.mastodon4j.api.entity.auth.AppRegistration;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import com.sys1yagi.mastodon4j.api.method.Apps;
@@ -16,11 +15,16 @@ import okhttp3.OkHttpClient;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
 public class Tootbench {
@@ -32,8 +36,7 @@ public class Tootbench {
 
   private final List<User> users = new ArrayList<>();
 
-  private volatile boolean running = false;
-  private final Thread runThread = new Thread(this::runLoop, "tootbench");
+  private final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
 
   public Tootbench(String clientName) {
     this.clientName = clientName;
@@ -103,51 +106,29 @@ public class Tootbench {
     }
   }
 
-  CompletableFuture<Optional<Status>> post(Statuses user) {
-    return CompletableFuture.supplyAsync(() -> {
+  Runnable post(Statuses user) {
+    return () -> {
       try {
-        return Optional.of(user.postStatus("My cool status", null, null, false, null).execute());
+        TootLoggingHandler.logPostResponse(LocalDateTime.now(), user.postStatus("My cool status", null, null, false, null).execute());
       } catch (Mastodon4jRequestException e) {
-        return Optional.empty();
+        log.warn("User post error. The user may be rate limited?");
       }
-    });
-  }
-
-  private void runLoop() {
-    List<Statuses> userStatus = users.stream().map(User::clientSender).map(Statuses::new).toList();
-    running = true;
-    log.info("Starting run loop");
-
-    while (running) {
-      Instant start = Instant.now();
-      for (Statuses user : userStatus) {
-        post(user).thenAccept(status -> status.ifPresentOrElse(TootLoggingHandler::logPostResponse,
-          () -> log.warn("User post error. The user may be rate limited?")));
-        // todo maybe add futures to a set and delete themselves on complete --> to know how many are unfinished.
-      }
-
-      Duration elapsed = Duration.between(start, Instant.now());
-      if (elapsed.toSeconds() >= 1) {
-        log.warn("one run loop took longer than a second: {},{}", elapsed.toSeconds(), elapsed.toMillisPart());
-      }
-      try {
-        Thread.sleep(Duration.ofSeconds(1).minus(elapsed)); // always wait for a second in total
-      } catch (InterruptedException e) {
-        log.error("Run loop interrupted, terminating...");
-        running = false;
-      }
-    }
-    log.info("Run loop done");
+    };
   }
 
   public void start() {
-    runThread.start();
+    List<Statuses> userStatus = users.stream().map(User::clientSender).map(Statuses::new).toList();
+    log.info("Starting run loop");
+
+    log.info("Cores: {}", Runtime.getRuntime().availableProcessors());
+    for (Statuses user : userStatus) {
+      threadPool.scheduleWithFixedDelay(post(user), 0, 1, SECONDS);
+    }
   }
 
   public void shutdown() {
-    running = false;
     try {
-      runThread.join();
+      threadPool.awaitTermination(1, SECONDS);
     } catch (InterruptedException ignored) {}
     users.forEach(user -> user.feedStream.shutdown());
   }

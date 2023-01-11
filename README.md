@@ -80,10 +80,7 @@ openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/min
 
 ## TODO
 - client
-  - one looping through all user postStatus handles
-  - checking time after each loop: either wait or warn, that the wanted timing cannot be kept
-  - (maybe run each postStatus on its own thread though) (futures?)
-- package the client for docker --> github container registry
+  - only one stream handle per instance
 - metric collection: system stats - vmstat(?) - send metrics directly to controller to avoid disk logging? -> configurable?
   - docker image & container - limit resources
 - scenario configuration: tfvars for machine_type, number of users per instance, number of instances
