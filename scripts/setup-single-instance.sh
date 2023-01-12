@@ -7,6 +7,6 @@ if [ ! -d cert/mstdn-single-instance ]; then
 fi
 
 terraform -chdir=plans/single-instance init
-terraform -chdir=plans/single-instance apply -var-file="secrets.tfvars"
+terraform -chdir=plans/single-instance apply
 
 ./scripts/await-ssh.sh

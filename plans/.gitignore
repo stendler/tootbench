@@ -3,7 +3,7 @@
 terraform.tfstate*
 .terraform.tfstate*
 
-secrets.tfvars
+secrets.yaml
 
 # generated artifacts
 ip

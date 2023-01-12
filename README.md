@@ -73,7 +73,7 @@ echo "secrets:" > playbooks/files/secrets.yaml
 max_instances=10
 for i in $(seq $max_instances); do
   echo "Generating instance secrets [$i/$max_instances]"
-  ./scripts/secrets.sh >> playbooks/files/secrets.yaml
+  ./scripts/secrets.sh >> playbooks/vars/secrets.yaml
 done
 ```
 
@@ -89,12 +89,12 @@ done
 
 ## TODO
 - federate
-  - multiple instances in terraform
   - configure instances to federate with each other
   - multiple instances in scripts
     - subscribe to users of other instances
 - client
-  - only one stream handle per instance? --> configurable number of posting and/or listening users
+  - configurable how many users post and how many users listen
+  - wait endldessly until shutdown
 - docker-compose: limit resources / set min reserved
 
 - use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4

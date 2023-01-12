@@ -37,6 +37,25 @@
 - name: Setup and run Mastodon on the instances
   hosts: instance
   tasks:
+    - name: .env.production
+      template:
+        src: .env.production.jinja2
+        dest: .env.production
+    - name: Create cert directory
+      shell: "mkdir -p cert/{{ inventory_hostname }}/"
+      args:
+        creates: cert/{{ inventory_hostname }}/
+    - name: Install minica certificate
+      copy:
+        src: cert/{{ inventory_hostname }}/cert.pem
+        local_follow: true
+        dest: cert/{{ inventory_hostname }}/cert.pem
+    - name: Install minica private key
+      copy:
+        src: cert/{{ inventory_hostname }}/key.pem
+        local_follow: true
+        dest: cert/{{ inventory_hostname }}/key.pem
+
     - name: Pre-compile Mastodon assets
       command:
 #        chdir: /home/ansible

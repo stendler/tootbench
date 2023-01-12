@@ -24,11 +24,11 @@ done
 ansible-playbook -i hosts.ini playbooks/await-init.yml
 
 # make mastodon publicly available (in single instance deployment)
-ssh mstdn-single-instance sed -i \"/^ALTERNATE_DOMAINS=/ s/$/$(cat plans/single-instance/ip)/\" .env.production
+#ssh mstdn-single-instance sed -i \"/^ALTERNATE_DOMAINS=/ s/$/$(cat plans/single-instance/ip)/\" .env.production
 #(ssh mstdn-single-instance tail -f /var/log/cloud-init-output.log &) | awk '{print}; /cloud-init has finished/{exit}'
 
 # setup client and instances
-ansible-playbook -i hosts.ini playbooks/prepare.yml
+#ansible-playbook -i hosts.ini playbooks/prepare.yml
 
 # verify that instance is reachable from the client
 #ssh controller https mstdn-single-instance/v1/instance --ignore-stdin

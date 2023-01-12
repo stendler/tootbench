@@ -6,42 +6,55 @@ provider "google" {
 
 provider "cloudinit" {}
 
-variable "instance-name" {
-  type = string
-  default = "mstdn-single-instance"
-}
-
 variable "ansible-ssh-key-file" {
   type = string
   description = "SSH public key for Ansible to use. E.g. ~/.ssh/id_ed25519.pub"
   default = "../../.ssh/id_ed25519.pub"
 }
 
-variable "secrets" {
+variable "scenario" {
   type = object({
-    rake-secret-key = string
-    rake-secret-otp = string
-    vapid-private-key = string
-    vapid-public-key = string
+    name = string
+    machine_type = string
+    instances = list(object({
+      users = number
+      posting_users = number # number of users that post
+      listening_users = number # number of users that listen
+    }))
   })
-  description = "Secrets for th .env.production template.\nrake-secret-key & rake-secret-otp: `rake secret`\nvapid-private-key & vapid-public-key: `rake mastodon:webpush:generate_vapid_key`"
-  sensitive = true
+
+  validation {
+    condition = length([ for i in var.scenario.instances: i
+      if i.users % 1 != 0 || i.listening_users % 1 != 0 || i.posting_users % 1 != 0
+    ]) == 0
+    error_message = "All user numbers must be integers."
+  }
+
+  validation {
+    condition = length([ for i in var.scenario.instances: i
+      if i.users < i.posting_users || i.users < i.listening_users
+    ]) == 0
+    error_message = "Number of listening users and number of posting users per instance must be less or equal the number of users of that instance."
+  }
+
+  description = "Benchmark scenario configuration."
+
+  default = {
+    name = "single-instance-default"
+    machine_type = "e2-standard-2"
+    instances = [
+      {
+        users = 10
+        posting_users = 10
+        listening_users = 10
+      }
+    ]
+  }
 }
 
 resource "google_compute_network" "vpc_network" {
   name                    = "mstdn-single-network"
   auto_create_subnetworks = "true"
-}
-
-data "template_file" "env_production" {
-  template = file("../../.env.production.template")
-  vars = {
-    domain = var.instance-name
-    rake-secret-key = var.secrets.rake-secret-key
-    rake-secret-otp = var.secrets.rake-secret-otp
-    vapid-private-key = var.secrets.vapid-private-key
-    vapid-public-key = var.secrets.vapid-public-key
-  }
 }
 
 data "template_file" "cloud_init_default" {
@@ -56,10 +69,7 @@ data "template_file" "cloud_init_instance_extension" {
   template = file("mastodon.extend.cloud-init.yml")
   vars = {
     dockerCompose = file("../../docker-compose.yml")
-    minicaCert = file(format("../../cert/%s/cert.pem", var.instance-name))
-    minicaKey = file(format("../../cert/%s/key.pem", var.instance-name))
     nginxTemplate = file("../../nginx.conf.template")
-    env_production = data.template_file.env_production.rendered
   }
 }
 
@@ -101,8 +111,9 @@ data "cloudinit_config" "controller" {
 }
 
 resource "google_compute_instance" "instance" {
-  machine_type = "e2-medium"
-  name         = var.instance-name
+  count = length(var.scenario.instances)
+  machine_type = var.scenario.machine_type
+  name         = format("%s-%d", var.scenario.name, count.index)
   tags         = ["ssh", "internal"
     #,"debug-extern"
   ]
@@ -200,19 +211,30 @@ resource "google_compute_firewall" "extern" {
 
 resource "local_file" "ip" {
   filename = "ip"
-  content = google_compute_instance.instance.network_interface.0.access_config.0.nat_ip
+  content = join("\n", concat([google_compute_instance.controller.name], google_compute_instance.instance.*.network_interface.0.access_config.0.nat_ip))
 }
 
 resource "local_file" "hosts" {
   filename = "hosts"
-  content = join("\n", formatlist("%s", [google_compute_instance.controller.name, google_compute_instance.instance.name]))
+  content = join("\n", concat([google_compute_instance.controller.name], google_compute_instance.instance.*.name))
+}
+
+locals {
+  secrets = [ for secret in slice(yamldecode(file("secrets.yaml")).secrets, 0, length(var.scenario.instances)) : "RAKE_SECRET_KEY: ${secret.rake-secret-key}\nRAKE_SECRET_OTP: ${secret.rake-secret-otp}\nVAPID_PRIVATE_KEY: ${secret.vapid-private-key}\nVAPID_PUBLIC_KEY: ${secret.vapid-public-key}" ]
 }
 
 resource "local_file" "ansible_hosts" {
   filename = "../../hosts.ini"
-  content = format("[all]\n%s\n[client]\n%s\n[instance]\n%s\n",
-    join("\n", formatlist("%s", [google_compute_instance.controller.name, google_compute_instance.instance.name])), # [all]
-    google_compute_instance.controller.name, # [client]
-    google_compute_instance.instance.name # [instance]
+  content = format("[all]\n%s\n%s\n\n[client]\n%s\n\n[instance]\n%s\n",
+    join("\n", formatlist("%s", [google_compute_instance.controller.name])), # [all]
+    join("\n", formatlist("%s", google_compute_instance.instance.*.name)), # [all]
+    join("\n", formatlist("%s", [google_compute_instance.controller.name])), # [client]
+    join("\n", formatlist("%s", google_compute_instance.instance.*.name)), # [instance]
   )
+}
+
+resource "local_file" "host_vars" {
+  count = length(google_compute_instance.instance)
+  filename = format("../../playbooks/host_vars/%s", google_compute_instance.instance[count.index].name)
+  content = local.secrets[count.index]
 }

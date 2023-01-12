@@ -6,25 +6,11 @@ packages:
 
 write_files:
   - path: /home/ansible/docker-compose.yml
-    #    owner: ansible
     encoding: base64
     content: ${base64encode(dockerCompose)}
-  - path: /home/ansible/cert/{{ v1.local_hostname }}/cert.pem
-    #    owner: ansible
-    encoding: base64
-    content: ${base64encode(minicaCert)}
-  - path: /home/ansible/cert/{{ v1.local_hostname }}/key.pem
-    #    owner: ansible
-    encoding: base64
-    content: ${base64encode(minicaKey)}
   - path: /home/ansible/nginx.conf.template
-    #    owner: ansible
     encoding: base64
     content: ${base64encode(nginxTemplate)}
-  - path: /home/ansible/.env.production
-    #    owner: ansible
-    encoding: base64
-    content: ${base64encode(env_production)}
 
 runcmd:
   - [ git, clone, --branch, v4.0.2, --depth, "1", "https://github.com/mastodon/mastodon.git", /home/ansible/mastodon ]
