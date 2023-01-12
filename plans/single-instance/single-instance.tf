@@ -15,9 +15,10 @@ variable "ansible-ssh-key-file" {
 variable "scenario" {
   type = object({
     name = string
-    machine_type = string
+    client_machine_type = string
+    instance_machine_type = string
     instances = list(object({
-      users = number
+      users = number # todo obsolete by using max(posting_users, listening_users) instead
       posting_users = number # number of users that post
       listening_users = number # number of users that listen
     }))
@@ -41,7 +42,8 @@ variable "scenario" {
 
   default = {
     name = "single-instance-default"
-    machine_type = "e2-standard-2"
+    client_machine_type = "e2-micro"
+    instance_machine_type = "e2-standard-2"
     instances = [
       {
         users = 10
@@ -112,7 +114,7 @@ data "cloudinit_config" "controller" {
 
 resource "google_compute_instance" "instance" {
   count = length(var.scenario.instances)
-  machine_type = var.scenario.machine_type
+  machine_type = var.scenario.instance_machine_type
   name         = format("%s-%d", var.scenario.name, count.index)
   tags         = ["ssh", "internal"
     #,"debug-extern"
@@ -140,7 +142,7 @@ resource "google_compute_instance" "instance" {
 }
 
 resource "google_compute_instance" "controller" {
-  machine_type = "e2-micro"
+  machine_type = var.scenario.client_machine_type
   name         = "controller"
   tags         = ["ssh", "internal"]
 
