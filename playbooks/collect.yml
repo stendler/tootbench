@@ -16,17 +16,17 @@
   hosts: instance
   tasks:
     - name: Create log folder
-      shell: "mkdir -p logs/{{ inventory_hostname }}/{{ hostvars['localhost']['timestamp'] }}"
+      shell: "mkdir -p logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/"
     - name: Write vmstat service monitoring log
-      shell: "journalctl -u vmstat | gzip > logs/{{ inventory_hostname }}/{{ hostvars['localhost']['timestamp'] }}/vmstat.log.gz"
+      shell: "journalctl -u vmstat | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/vmstat.log.gz"
     - name: Write iostat cpu service monitoring log
-      shell: "journalctl -u iostat-cpu | gzip > logs/{{ inventory_hostname }}/{{ hostvars['localhost']['timestamp'] }}/iostat-cpu.log.gz"
+      shell: "journalctl -u iostat-cpu | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/iostat-cpu.log.gz"
     - name: Write iostat disk service monitoring log
-      shell: "journalctl -u iostat-disk | gzip > logs/{{ inventory_hostname }}/{{ hostvars['localhost']['timestamp'] }}/iostat-disk.log.gz"
+      shell: "journalctl -u iostat-disk | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/iostat-disk.log.gz"
     - name: Write mpstat service monitoring log
-      shell: "journalctl -u mpstat | gzip > logs/{{ inventory_hostname }}/{{ hostvars['localhost']['timestamp'] }}/mpstat.log.gz"
+      shell: "journalctl -u mpstat | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/mpstat.log.gz"
     - name: Write docker stats service monitoring log
-      shell: "journalctl -u docker-stats | gzip > logs/{{ inventory_hostname }}/{{ hostvars['localhost']['timestamp'] }}/docker-stats.log.gz"
+      shell: "journalctl -u docker-stats | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/docker-stats.log.gz"
     - name: Collect logs
       synchronize:
         mode: pull
