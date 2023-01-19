@@ -1,0 +1,43 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="gcloud-terraform/Dockerfile shell root" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
+    <deployment type="dockerfile">
+      <settings>
+        <option name="imageTag" value="gcloud-terraform:412" />
+        <option name="attachToContainerNeeded" value="true" />
+        <option name="containerName" value="gcloud-terraform" />
+        <option name="entrypoint" value="/bin/bash" />
+        <option name="envVars">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="HOST_VOLUME_MOUNT" />
+              <option name="value" value="$PROJECT_DIR$/" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
+        <option name="commandLineOptions" value="--workdir /home/cloudsdk/project -u 1000:972" />
+        <option name="sourceFilePath" value="gcloud-terraform/Dockerfile" />
+        <option name="volumeBindings">
+          <list>
+            <DockerVolumeBindingImpl>
+              <option name="containerPath" value="/home/cloudsdk/project" />
+              <option name="hostPath" value="$PROJECT_DIR$/" />
+            </DockerVolumeBindingImpl>
+            <DockerVolumeBindingImpl>
+              <option name="containerPath" value="/home/cloudsdk/.config" />
+              <option name="hostPath" value="gcloud-config-personal" />
+            </DockerVolumeBindingImpl>
+            <DockerVolumeBindingImpl>
+              <option name="containerPath" value="/root/.config" />
+              <option name="hostPath" value="gcloud-config-root" />
+            </DockerVolumeBindingImpl>
+            <DockerVolumeBindingImpl>
+              <option name="containerPath" value="/var/run/docker.sock" />
+              <option name="hostPath" value="/var/run/docker.sock" />
+            </DockerVolumeBindingImpl>
+          </list>
+        </option>
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>
