@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="gcloud-terraform/Dockerfile shell root" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
+  <configuration default="false" name="gcloud-terraform/Dockerfile shell project" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
     <deployment type="dockerfile">
       <settings>
         <option name="imageTag" value="gcloud-terraform:412" />
