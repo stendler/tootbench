@@ -9,7 +9,7 @@ provider "cloudinit" {}
 variable "ansible-ssh-key-file" {
   type = string
   description = "SSH public key for Ansible to use. E.g. ~/.ssh/id_ed25519.pub"
-  default = "../../.ssh/id_ed25519.pub"
+  default = "../.ssh/id_ed25519.pub"
 }
 
 variable "scenario" {
@@ -63,15 +63,15 @@ data "template_file" "cloud_init_default" {
   template = file("cloud-init.yaml")
   vars = {
     ansibleSshKey = file(var.ansible-ssh-key-file)
-    minicaRoot = file("../../cert/minica.pem")
+    minicaRoot = file("../cert/minica.pem")
   }
 }
 
 data "template_file" "cloud_init_instance_extension" {
   template = file("mastodon.extend.cloud-init.yml")
   vars = {
-    dockerCompose = file("../../docker-compose.yml")
-    nginxTemplate = file("../../nginx.conf.template")
+    dockerCompose = file("../docker-compose.yml")
+    nginxTemplate = file("../nginx.conf.template")
   }
 }
 
@@ -226,7 +226,7 @@ locals {
 }
 
 resource "local_file" "ansible_hosts" {
-  filename = "../../hosts.ini"
+  filename = "../hosts.ini"
   content = format("[all]\n%s\n%s\n\n[client]\n%s\n\n[instance]\n%s\n",
     join("\n", formatlist("%s", [google_compute_instance.controller.name])), # [all]
     join("\n", formatlist("%s", google_compute_instance.instance.*.name)), # [all]
@@ -237,6 +237,6 @@ resource "local_file" "ansible_hosts" {
 
 resource "local_file" "host_vars" {
   count = length(google_compute_instance.instance)
-  filename = format("../../playbooks/host_vars/%s", google_compute_instance.instance[count.index].name)
+  filename = format("../playbooks/host_vars/%s", google_compute_instance.instance[count.index].name)
   content = local.secrets[count.index]
 }

@@ -97,8 +97,8 @@ ssh-keygen -f .ssh/id_ed25519 -t ed25519
 Setup terraform:
 
 ```sh
-terraform -chdir=plans/single-instance init
-terraform -chdir=plans/single-instance apply
+terraform -chdir=terraform init
+terraform -chdir=terraform apply
 # update ssh 
 gcloud compute config-ssh --ssh-key-file=.ssh/id_ed25519
 ```
@@ -106,7 +106,7 @@ gcloud compute config-ssh --ssh-key-file=.ssh/id_ed25519
 Reboot a single instance:
 
 ```sh
-terraform -chdir=plans/single-instance apply -replace=google_compute_instance.instance -var-file="secrets.tfvars"
+terraform -chdir=terraform -replace=google_compute_instance.instance -var-file="secrets.tfvars"
 ```
 
 Copy files for testing:
@@ -122,7 +122,7 @@ Problem: https cannot be verified due to self-signed certificate.
 Destroy
 
 ```sh
-terraform -chdir=plans/single-instance  destroy -var-file=secrets.tfvars
+terraform -chdir=terraform  destroy -var-file=secrets.tfvars
 ```
 
 Moved these into scripts:

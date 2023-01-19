@@ -14,7 +14,7 @@ if [ -z "$HOST_VOLUME_MOUNT" ]; then
   echo "No HOST_VOLUME_MOUNT set. Assuming running on the host and the following directory is accessible by the docker daemon: $HOST_VOLUME_MOUNT"
 fi
 
-for instance in $(cat plans/single-instance/hosts); do
+for instance in $(cat terraform/hosts); do
   sed -i "/^Host $instance/ s/$/ $instance/" ~/.ssh/config
   sed -i "/^Host $instance/a\    User ansible" ~/.ssh/config
 
@@ -36,7 +36,7 @@ done
 ansible-playbook -i hosts.ini playbooks/await-init.yml
 
 # make mastodon publicly available (in single instance deployment)
-#ssh mstdn-single-instance sed -i \"/^ALTERNATE_DOMAINS=/ s/$/$(cat plans/single-instance/ip)/\" .env.production
+#ssh mstdn-single-instance sed -i \"/^ALTERNATE_DOMAINS=/ s/$/$(cat terraform/ip)/\" .env.production
 #(ssh mstdn-single-instance tail -f /var/log/cloud-init-output.log &) | awk '{print}; /cloud-init has finished/{exit}'
 
 # setup client and instances

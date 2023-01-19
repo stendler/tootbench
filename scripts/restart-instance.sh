@@ -7,7 +7,7 @@ if [ -z $instances ]; then
   instances="instance controller"
 fi
 
-terraform -chdir=plans/single-instance init
-terraform -chdir=plans/single-instance apply $(for instance in $instances; do echo -replace=google_compute_instance.$instance; done) -auto-approve
+terraform -chdir=terraform init
+terraform -chdir=terraform apply $(for instance in $instances; do echo -replace=google_compute_instance.$instance; done) -auto-approve
 
 ./scripts/await-ssh.sh

@@ -50,7 +50,7 @@ If you don't want to or cannot install terraform and gcloud sdk locally, you can
 
 ```sh
 docker build -t gcloud-terraform:412 gcloud-terraform
-docker run -i --rm --entrypoint /bin/bash -v "$(pwd)/plans:/home/cloudsdk/plans" -v gcloud-config-personal:/home/cloudsdk/.config -v gcloud-config-root:/root/.config --name gcloud-terraform -w /home/cloudsdk/plans gcloud-terraform:412
+docker run -i --rm --entrypoint /bin/bash -v "$(pwd)/terraform:/home/cloudsdk/terraform" -v gcloud-config-personal:/home/cloudsdk/.config -v gcloud-config-root:/root/.config --name gcloud-terraform -w /home/cloudsdk/plans gcloud-terraform:412
 # now you have a shell to run gcloud and terraform commands
 ```
 
@@ -94,7 +94,8 @@ done
     - subscribe to users of other instances
 - client
   - configurable how many users post and how many users listen
-  - wait endldessly until shutdown
+  - wait endlessly until shutdown
+  - maybe: integration test with a mock server --> are the intervals really 1 sec each per thread? (should be visible in the logs as well though)
 - docker-compose: limit resources / set min reserved
 
 - use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4
@@ -108,7 +109,3 @@ done
 - metric services: awk only relevant lines
 - user avatars (differing per user globally) --> load
 - add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
-
-# terraform: client vm & server vm
-
-# ansible? compose

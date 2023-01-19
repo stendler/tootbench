@@ -6,7 +6,7 @@ if [ ! -d cert/mstdn-single-instance ]; then
   docker run --rm -v "$(pwd)/cert:/cert" -u $(id -u):$(id -g) minica --domains mstdn-single-instance
 fi
 
-terraform -chdir=plans/single-instance init
-terraform -chdir=plans/single-instance apply
+terraform -chdir=terraform init
+terraform -chdir=terraform apply
 
 ./scripts/await-ssh.sh
