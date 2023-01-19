@@ -77,6 +77,7 @@ public class Tootbench {
 
   public User loginUser(String host, String username, String password) {
     try {
+      log.debug("Trying to login {} at {}", username, host);
       var client = hostAppClients.get(host);
       var token = client.appClient.postUserNameAndPassword(client.registration.getClientId(), client.registration.getClientSecret(), new Scope(Scope.Name.ALL), username, password).execute();
       log.debug("User {} logged into {}", username, host);
@@ -98,7 +99,7 @@ public class Tootbench {
       users.add(user);
       return user;
     } catch (Mastodon4jRequestException e) {
-      log.error("Failed to login and connect user {}", username);
+      log.error("Failed to login and connect user {} at {}", username, host);
       throw new RuntimeException(e);
     } catch (NullPointerException e) {
       log.error("No app registered yet for host {}", host);
