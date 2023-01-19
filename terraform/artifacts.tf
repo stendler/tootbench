@@ -12,6 +12,7 @@ locals {
   secrets = [ for secret in slice(yamldecode(file("secrets.yaml")).secrets, 0, length(var.scenario.instances)) : "RAKE_SECRET_KEY: ${secret.rake-secret-key}\nRAKE_SECRET_OTP: ${secret.rake-secret-otp}\nVAPID_PRIVATE_KEY: ${secret.vapid-private-key}\nVAPID_PUBLIC_KEY: ${secret.vapid-public-key}" ]
 }
 
+# no ips needed - that is handled by gcloud compute ssh-config
 resource "local_file" "ansible_hosts" {
   filename = "../hosts.ini"
   content = format("[all]\n%s\n%s\n\n[client]\n%s\n\n[instance]\n%s\n",
