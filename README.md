@@ -83,7 +83,7 @@ done
 
 ```sh
 ./scripts/setup-single-instance.sh # setup and deploy everything (including certs)
-./scripts/restart-instance.sh # optionally with a terraform resource name to be restarted (default: "instance controller")
+./scripts/restart-instance.sh # optionally with a terraform resource name to be restarted (default: "instance client")
 ./scripts/destroy-single-instance.sh # shutdown
 ```
 
@@ -99,7 +99,7 @@ done
 - docker-compose: limit resources / set min reserved
 
 - use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4
-- client vms for load generation instructed from the controller
+- client vms for load generation instructed from a controller
   - single client vm for now, since its rate limited anyway
 
 - slide: show a diagram/architecture

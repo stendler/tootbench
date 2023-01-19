@@ -4,7 +4,7 @@ set -e
 
 instances="$1"
 if [ -z $instances ]; then
-  instances="instance controller"
+  instances="instance client"
 fi
 
 terraform -chdir=terraform init

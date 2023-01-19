@@ -33,11 +33,6 @@ data "template_file" "cloud_init_instance_extension" {
   }
 }
 
-data "template_file" "cloud_init_controller_extension" {
-  template = file("controller.extend.cloud-init.yml")
-  vars = { }
-}
-
 data "cloudinit_config" "instance" {
   gzip = false
   base64_encode = false
@@ -50,22 +45,6 @@ data "cloudinit_config" "instance" {
   part {
     content_type = "text/jinja2"
     content = data.template_file.cloud_init_instance_extension.rendered
-    merge_type = "list(append)+dict(recurse_array)+str()"
-  }
-}
-
-data "cloudinit_config" "controller" {
-  gzip = false
-  base64_encode = false
-
-  part {
-    content_type = "text/cloud-config"
-    content = data.template_file.cloud_init_default.rendered
-    merge_type = "list(append)+dict(recurse_array)+str()"
-  }
-  part {
-    content_type = "text/jinja2"
-    content = data.template_file.cloud_init_controller_extension.rendered
     merge_type = "list(append)+dict(recurse_array)+str()"
   }
 }
@@ -99,30 +78,6 @@ resource "google_compute_instance" "instance" {
   }
 }
 
-resource "google_compute_instance" "controller" {
-  machine_type = var.scenario.client_machine_type
-  name         = "controller"
-  tags         = ["ssh", "internal"]
-
-  boot_disk {
-    initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2210-amd64"
-    }
-  }
-
-  metadata = {
-    enable-guest-attributes = "TRUE"
-    user-data = data.cloudinit_config.controller.rendered
-  }
-
-  network_interface {
-    network = google_compute_network.vpc_network.self_link
-    access_config {
-      # Include this section to give the VM an external IP address
-      network_tier = "STANDARD"
-    }
-  }
-}
 
 resource "google_compute_firewall" "ssh" {
   name = "allow-ssh"
@@ -171,12 +126,12 @@ resource "google_compute_firewall" "extern" {
 
 resource "local_file" "ip" {
   filename = "ip"
-  content = join("\n", concat([google_compute_instance.controller.name], google_compute_instance.instance.*.network_interface.0.access_config.0.nat_ip))
+  content = join("\n", concat([google_compute_instance.client.name], google_compute_instance.instance.*.network_interface.0.access_config.0.nat_ip))
 }
 
 resource "local_file" "hosts" {
   filename = "hosts"
-  content = join("\n", concat([google_compute_instance.controller.name], google_compute_instance.instance.*.name))
+  content = join("\n", concat([google_compute_instance.client.name], google_compute_instance.instance.*.name))
 }
 
 locals {
@@ -186,9 +141,9 @@ locals {
 resource "local_file" "ansible_hosts" {
   filename = "../hosts.ini"
   content = format("[all]\n%s\n%s\n\n[client]\n%s\n\n[instance]\n%s\n",
-    join("\n", formatlist("%s", [google_compute_instance.controller.name])), # [all]
+    join("\n", formatlist("%s", [google_compute_instance.client.name])), # [all]
     join("\n", formatlist("%s", google_compute_instance.instance.*.name)), # [all]
-    join("\n", formatlist("%s", [google_compute_instance.controller.name])), # [client]
+    join("\n", formatlist("%s", [google_compute_instance.client.name])), # [client]
     join("\n", formatlist("%s", google_compute_instance.instance.*.name)), # [instance]
   )
 }

@@ -1,9 +1,9 @@
-data "template_file" "cloud_init_controller_extension" {
-  template = file("controller.extend.cloud-init.yml")
+data "template_file" "cloud_init_client_extension" {
+  template = file("client.extend.cloud-init.yml")
   vars = { }
 }
 
-data "cloudinit_config" "controller" {
+data "cloudinit_config" "client" {
   gzip = false
   base64_encode = false
 
@@ -14,14 +14,14 @@ data "cloudinit_config" "controller" {
   }
   part {
     content_type = "text/jinja2"
-    content = data.template_file.cloud_init_controller_extension.rendered
+    content = data.template_file.cloud_init_client_extension.rendered
     merge_type = "list(append)+dict(recurse_array)+str()"
   }
 }
 
-resource "google_compute_instance" "controller" {
+resource "google_compute_instance" "client" {
   machine_type = var.scenario.client_machine_type
-  name         = "controller"
+  name         = "client"
   tags         = ["ssh", "internal"]
 
   boot_disk {
@@ -32,7 +32,7 @@ resource "google_compute_instance" "controller" {
 
   metadata = {
     enable-guest-attributes = "TRUE"
-    user-data = data.cloudinit_config.controller.rendered
+    user-data = data.cloudinit_config.client.rendered
   }
 
   network_interface {

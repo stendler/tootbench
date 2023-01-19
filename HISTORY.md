@@ -116,7 +116,7 @@ rsync -azh --filter=':- .gitignore' --exclude=.git . ansible@mstdn-single-instan
 ssh ansible@mstdn-single-instance.europe-west1-b.cloud-service-benchmarking-22
 ```
 
---> now all done with terraform and cloud-init. The Controller can reach mastodon on instance.
+--> now all done with terraform and cloud-init. The client can reach mastodon on instance.
 Problem: https cannot be verified due to self-signed certificate.
 
 Destroy
@@ -129,7 +129,7 @@ Moved these into scripts:
 
 ```sh
 ./scripts/setup-single-instance.sh # setup and deploy everything (including certs)
-./scripts/restart-instance.sh # optionally with a terraform resource name to be restarted (default: "instance controller")
+./scripts/restart-instance.sh # optionally with a terraform resource name to be restarted (default: "instance client")
 ./scripts/destroy-single-instance.sh # shutdown
 ```
 
