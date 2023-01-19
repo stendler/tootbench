@@ -58,11 +58,9 @@
 
     - name: Pre-compile Mastodon assets
       command:
-#        chdir: /home/ansible
         cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon run --rm precompile-assets"
     - name: Migrate Mastodon database
       command:
-#        chdir: /home/ansible
         cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon run --rm db-migrate"
       args:
         creates: mastodon/postgres14

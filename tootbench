@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+scenario="$1"
+scenario_cmd=""
+for s in $(./scripts/scenarios.sh); do
+  if [ "$s" == "$scenario" ]; then
+    scenario_cmd="-var-file=scenarios/$s.tfvars"
+    shift
+    break
+  fi
+done
+
+if [ -z "$@" ]; then
+  make scenario="$scenario_cmd" 0="$0 <scenario>" help
+else
+  make scenario="$scenario_cmd" "$@"
+fi
