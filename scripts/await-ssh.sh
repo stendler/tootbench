@@ -8,9 +8,19 @@ if [ -f ~/.ssh/config ]; then
 fi
 gcloud compute config-ssh --ssh-key-file=.ssh/id_ed25519
 
+# if running inside docker: to be able to mount a volume from the host
+if [ -z "$HOST_VOLUME_MOUNT" ]; then
+  HOST_VOLUME_MOUNT="$(pwd)"
+  echo "No HOST_VOLUME_MOUNT set. Assuming running on the host and the following directory is accessible by the docker daemon: $HOST_VOLUME_MOUNT"
+fi
+
 for instance in $(cat plans/single-instance/hosts); do
   sed -i "/^Host $instance/ s/$/ $instance/" ~/.ssh/config
   sed -i "/^Host $instance/a\    User ansible" ~/.ssh/config
+
+  if [ ! -d cert/$instance ]; then
+    docker run --rm -v "$HOST_VOLUME_MOUNT/cert:/cert" -u $(id -u):$(id -g) minica --domains $instance
+  fi
 
   # await ssh-server ready for connections (and let gcloud gather fingerprints for known_hosts)
   # https://stackoverflow.com/questions/54668239/how-to-wait-until-ssh-is-available
