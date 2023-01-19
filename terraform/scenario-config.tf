@@ -29,12 +29,12 @@ variable "scenario" {
   description = <<-EOT
   Benchmark scenario configuration.
 
-  name: of the scenario and used as instance names and for the collected output file directory.
-  client_machine_type: gcp machine type for the client machine. Preferably many core less ram.
-  instance_machine_type: gcp machine type for the instances. Preferably multi-core and no burst machines.
-  instances: list of instances with per instance configuration
-    posting_users: number of users on this instance, creating posts
-    listening_users: number of users on this instance, listening to a feed stream
+  - name: of the scenario and used as instance names and for the collected output file directory.
+  - client_machine_type: gcp machine type for the client machine. Preferably many core less ram.
+  - instance_machine_type: gcp machine type for the instances. Preferably multi-core and no burst machines.
+  - instances: list of instances with per instance configuration
+    - posting_users: number of users on this instance, creating posts
+    - listening_users: number of users on this instance, listening to a feed stream
   EOT
 
   default = {
