@@ -19,11 +19,32 @@
     - name: Vacuum journal
       become: yes
       shell: "journalctl --rotate --vacuum-time=1s"
+    - name: Delete user credentials
+      file:
+        state: absent
+        path: users.txt
+    - name: Delete admin credentials
+      file:
+        state: absent
+        path: admin.txt
 
-- name: Clean Tootbench Benchmark log
+- name: Clean client files
   hosts: client
   tasks:
     - name: Delete Tootbench client log
       file:
         state: absent
         path: tootbench.log.gz
+    - name: Delete user credentials
+      file:
+        state: absent
+        path: users/
+
+- name: Clean local files
+  hosts: localhost
+  tasks:
+    - name: Delete user credential files
+      file:
+        path: users/
+        state: absent
+
