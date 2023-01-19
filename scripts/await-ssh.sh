@@ -3,7 +3,9 @@
 # NOTE: sed commands may require GNU sed and might not work with other POSIX implementations (e.g. on MacOS). But they work in the gcloud-terraform container
 
 # gcloud compute config-ssh is not removing lines, that were edited, so they need to be disposed with the following
-sed -i "/^# Google Compute Engine Section/,/^# End of Google Compute Engine Section/d" ~/.ssh/config
+if [ -f ~/.ssh/config ]; then
+  sed -i "/^# Google Compute Engine Section/,/^# End of Google Compute Engine Section/d" ~/.ssh/config
+fi
 gcloud compute config-ssh --ssh-key-file=.ssh/id_ed25519
 
 for instance in $(cat plans/single-instance/hosts); do
