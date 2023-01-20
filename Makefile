@@ -35,7 +35,7 @@ test:
 	@./scripts/test.sh
 
 init:
-
+	@./scripts/init.sh cloud-service-benchmarking-22 10
 
 setup:
 	@terraform -chdir=terraform init ${scenario}
