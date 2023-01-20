@@ -18,6 +18,18 @@ help:
 	@printf "\tclean\t Clean monitoring and client logs on remote benchmark infrastructure.\n"
 	@printf "\tanalyse\t Run analysis script on collected logs.\n"
 	@printf "\tdestroy\t Destroy the scenarios infrastructure.\n"
+	@echo
+	@echo "Requirements:"
+	@printf "\tDocker:     " && (docker version >/dev/null 2>/dev/null && printf "✅ " || printf "❌ " && echo " (mandatory)")
+	@printf "\tOpenSSL:    " && (openssl version >/dev/null 2>/dev/null && echo "✅ " || echo "❌  (maybe use the docker image in ./gcloud-terraform/ instead - see below)")
+	@printf "\tTerraform:  " && (terraform -version >/dev/null 2>/dev/null && echo "✅ " || echo "❌  (maybe use the docker image in ./gcloud-terraform/ instead - see below)")
+	@printf "\tMaven:      " && (mvn --version >/dev/null 2>/dev/null && echo "✅ " || echo "⚠  (may use a docker container instead)")
+	@printf "\tAnsible:    " && (ansible-playbook --version >/dev/null 2>/dev/null && echo "✅ " || echo "❌  (maybe use the docker image in ./gcloud-terraform/ instead - see below)")
+	@printf "\tgcloud SDK: " && (gcloud --version >/dev/null 2>/dev/null && echo "✅ " || echo "❌  (maybe use the docker image in ./gcloud-terraform/ instead - see below)")
+	@echo
+	@printf "Alternatively, use the docker image in ./gcloud-terraform/ instead:\n\tdocker build -t gcloud-terraform:412 gcloud-terraform\n"
+	@printf '\tdocker run --entrypoint /bin/bash -a \\\n\t   -v "$(PWD):/home/cloudsdk/project" \\\n\t   -v gcloud-config-personal:/home/cloudsdk/.config -v gcloud-config-root:/root/.config \\\n\t   -v /var/run/docker.sock:/var/run/docker.sock --name gcloud-terraform -u 1000:972 -w /home/cloudsdk/project \\\n\t   --env HOST_VOLUME_MOUNT=$(PWD) \\\n\t   gcloud-terraform:412\n'
+	@echo
 
 test:
 	@./scripts/test.sh
