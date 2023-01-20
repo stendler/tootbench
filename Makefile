@@ -26,16 +26,18 @@ init:
 
 
 setup:
-	@./scripts/setup.sh
+	@terraform -chdir=terraform init ${scenario}
+	@terraform -chdir=terraform apply ${scenario}
+	@./scripts/await-ssh.sh
 
 restart:
-	@./scripts/restart-instance.sh
+	@./scripts/restart.sh
 
 restart-client:
-	@./scripts/restart-instance.sh client
+	@./scripts/restart.sh client
 
 restart-instance:
-	@./scripts/restart-instance.sh instance
+	@./scripts/restart.sh instance
 
 prepare:
 	@ansible-playbook --inventory hosts.ini playbooks/prepare.yml
