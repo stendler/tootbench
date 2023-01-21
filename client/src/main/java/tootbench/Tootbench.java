@@ -89,7 +89,9 @@ public class Tootbench {
       log.trace("create stream");
       var userStream = new Streaming(userReceiver);
       log.trace("start streaming");
-      var shutdownable = userStream.federatedPublic(new TootLoggingHandler(username)); // todo is that the feed I want to check? do users even need to follow?
+      //var shutdownable = userStream.federatedPublic(new TootLoggingHandler(username)); // todo is that the feed I want to check? do users even need to follow?
+      //var shutdownable = userStream.localPublic(new TootLoggingHandler(username));
+      var shutdownable = userStream.user(new TootLoggingHandler(username));
       // todo maybe userStream.user(handler) ? or maybe follow is not necessary if instances federate
       // todo only open one feed per host (at least for the federatedPublic one)
 
