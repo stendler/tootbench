@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
@@ -123,7 +124,7 @@ public class Tootbench {
 
     log.info("Cores: {}", Runtime.getRuntime().availableProcessors());
     for (Statuses user : userStatus) {
-      threadPool.scheduleWithFixedDelay(post(user), 0, 1, SECONDS);
+      threadPool.scheduleWithFixedDelay(post(user), 0, 1100, MILLISECONDS);
     }
   }
 
