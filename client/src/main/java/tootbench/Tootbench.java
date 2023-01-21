@@ -51,7 +51,7 @@ public class Tootbench {
 
   public RegisteredApp register(String host) {
     try {
-      log.debug("registering...");
+      log.debug("registering client at {} ...", host);
       var apps = new Apps(new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson()).build());
       var registration = apps.createApp(clientName, "urn:ietf:wg:oauth:2.0:oob", new Scope(Scope.Name.ALL)).execute();
       log.debug("app created: {} - {}", clientName, registration.getClientId());
