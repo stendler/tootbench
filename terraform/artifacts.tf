@@ -26,5 +26,5 @@ resource "local_file" "ansible_hosts" {
 resource "local_file" "host_vars" {
   count = length(google_compute_instance.instance)
   filename = format("../playbooks/host_vars/%s", google_compute_instance.instance[count.index].name)
-  content = local.secrets[count.index]
+  content = format("%s\nIP: %s", local.secrets[count.index], google_compute_instance.instance[count.index].network_interface.0.access_config.0.nat_ip)
 }
