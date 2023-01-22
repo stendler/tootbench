@@ -45,6 +45,7 @@ services:
       - internal_network
     depends_on:
       - db
+      - redis
     profiles:
       - migrate
 
