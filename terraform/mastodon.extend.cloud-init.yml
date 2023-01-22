@@ -13,7 +13,7 @@ write_files:
     content: ${base64encode(nginxTemplate)}
 
 runcmd:
-  - [ git, clone, --branch, v4.0.2, --depth, "1", "https://github.com/mastodon/mastodon.git", /home/ansible/mastodon ]
+  - [ git, clone, --branch, v3.5.5, --depth, "1", "https://github.com/mastodon/mastodon.git", /home/ansible/mastodon ]
   - [ chown, -R, "ansible:ansible", /home/ansible ]
   - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, pull, --quiet ]
   - [ curl, -H, "Tags: elephant", -H, "Title: CSB {{ v1.local_hostname }} deployed", -d, "{{ v1.local_hostname }} running mastodon now", "https://ntfy.sh/cloud-service-benchmarking-22" ]
