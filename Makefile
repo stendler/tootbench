@@ -42,35 +42,35 @@ init:
 	@./scripts/init.sh cloud-service-benchmarking-22 10
 
 setup:
-	@terraform -chdir=terraform init ${scenario_cmd}
-	@terraform -chdir=terraform apply ${scenario_cmd}
-	@./scripts/await-ssh.sh
+	terraform -chdir=terraform init ${scenario_cmd}
+	terraform -chdir=terraform apply ${scenario_cmd}
+	./scripts/await-ssh.sh
 
 restart:
-	@./scripts/restart.sh
+	sh -c "scenario_cmd=${scenario_cmd} ./scripts/restart.sh"
 
 restart-client:
-	@./scripts/restart.sh client
+	sh -c "scenario_cmd=${scenario_cmd} ./scripts/restart.sh client"
 
 restart-instance:
-	@./scripts/restart.sh instance
+	sh -c "scenario_cmd=${scenario_cmd} ./scripts/restart.sh instance"
 
 prepare:
-	@ansible-playbook --inventory hosts.ini playbooks/prepare.yml
+	ansible-playbook --inventory hosts.ini playbooks/prepare.yml
 
 start:
-	@ansible-playbook --inventory hosts.ini playbooks/start.yml
+	ansible-playbook --inventory hosts.ini playbooks/start.yml
 
 stop:
-	@ansible-playbook --inventory hosts.ini playbooks/stop.yml
+	ansible-playbook --inventory hosts.ini playbooks/stop.yml
 
 collect:
-	@ansible-playbook --inventory hosts.ini playbooks/collect.yml
+	ansible-playbook --inventory hosts.ini playbooks/collect.yml
 
 clean:
-	@ansible-playbook --inventory hosts.ini playbooks/clean.yml
+	ansible-playbook --inventory hosts.ini playbooks/clean.yml
 
 destroy:
-	@terraform -chdir=terraform destroy ${scenario_cmd}
+	terraform -chdir=terraform destroy ${scenario_cmd}
 
 analyse:
