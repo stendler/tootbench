@@ -1,6 +1,6 @@
 ---
 - name: Start monitoring
-  hosts: instance
+  hosts: instances
   become: yes
   tasks:
     - name: Start vmstat monitoring service
@@ -29,7 +29,7 @@
         state: started
 
 - name: Start Mastodon
-  hosts: instance
+  hosts: instances
   tasks:
     - name: Start mastodon containers
       command:
@@ -37,7 +37,7 @@
         cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon up --wait"
 
 - name: Start Benchmark
-  hosts: client
+  hosts: clients
   become: yes
   tasks:
     - name: Start tootbench client

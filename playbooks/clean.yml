@@ -1,6 +1,6 @@
 ---
 - name: Clean monitoring logs
-  hosts: instance
+  hosts: instances
   tasks:
     - name: Remove mastodon containers
       command:
@@ -29,7 +29,7 @@
         path: admin.txt
 
 - name: Clean client files
-  hosts: client
+  hosts: clients
   tasks:
     - name: Delete Tootbench client log
       file:

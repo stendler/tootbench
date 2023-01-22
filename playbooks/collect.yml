@@ -13,7 +13,7 @@
         cachable: yes
 
 - name: Write monitoring logs
-  hosts: instance
+  hosts: instances
   tasks:
     - name: Create log folder
       shell: "mkdir -p logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/"
@@ -34,7 +34,7 @@
         dest: logs/
 
 - name: Collect Tootbench Benchmark log
-  hosts: client
+  hosts: clients
   tasks:
     - name: Collect tootbench client log
       fetch:

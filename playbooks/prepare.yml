@@ -1,6 +1,6 @@
 ---
 - name: Install monitoring services
-  hosts: instance
+  hosts: instances
   become: yes
   tasks:
     # (continuos) vmstat --unit M --one-header --timestamp 5
@@ -35,7 +35,7 @@
     # (maybe?) netstat --continuous --tcp --udp
 
 - name: Setup and run Mastodon on the instances
-  hosts: instance
+  hosts: instances
   tasks:
     - name: .env.production
       template:
@@ -86,7 +86,7 @@
         dest: users/
 
 - name: Setup clients
-  hosts: client
+  hosts: clients
   tasks:
     - name: Distribute app dependencies
       copy:
@@ -105,14 +105,10 @@
       # todo: if multiple clients, then split files by number of clients
 
 - name: Setup tootbench
-  hosts: client
+  hosts: clients
   become: yes
   tasks:
     - name: Install app service
       copy:
         src: tootbench.service
         dest: /etc/systemd/system/
-
-    # todo start client (and thus Benchmark) --> start.yml
-    # todo wait for specified time OR setup a systemd timer on the client stopping the client and sending a ntfy
-    # todo stop clients & benchmark --> stop.yml playbook
