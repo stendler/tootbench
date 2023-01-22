@@ -1,12 +1,13 @@
 #!/usr/bin/env sh
 
-if [ ! -f $1 ]; then
-  echo "Needs a text file listing users. Could not find file $1"
-  exit 1
+set -e # exit on failure
+
+if [ ! -d "$1" ]; then
+  1="users"
 fi
 
-# will that even work for remote users?
-# local can only be added with $username and not via $username@domain
-for username in $(cat "$1" | awk '{print $1'}); do
-  docker compose --project-name mastodon run --rm tootctl accounts follow $username
+for file in $(find "$1" -name users.txt -not -path "*/$(hostname)/*"); do
+  for username in $(cat "$file" | awk '{print $2}'); do
+    docker compose --project-name mastodon run --rm tootctl accounts follow $username
+  done
 done

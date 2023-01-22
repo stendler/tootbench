@@ -77,13 +77,24 @@
         creates: admin.txt
     - name: Create Mastodon users
       command:
-        cmd: sh createUser.sh 10
+        cmd: sh createUser.sh 10 user {{ inventory_hostname }}
       args:
         creates: users.txt
+    - name: Let local users follow each other
+      command:
+        cmd: sh followersAddLocal.sh users.txt
     - name: Collect user credentials
       fetch:
         src: users.txt
         dest: users/
+    - name: Distribute user credentials
+      copy:
+        src: users
+        dest: ./
+    - name: Let remote users follow each other
+      ignore_errors: true # todo remove - use for now since this fails..
+      command:
+        cmd: sh followersAdd.sh
 
 - name: Setup clients
   hosts: clients
