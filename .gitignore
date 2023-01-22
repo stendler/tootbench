@@ -11,3 +11,4 @@ admin.txt
 hosts.ini
 *.log.gz
 secrets.yaml
+host_vars/
