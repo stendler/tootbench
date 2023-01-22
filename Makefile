@@ -1,5 +1,9 @@
 0?=make scenario=<scenario>
 
+ifdef scenario
+	scenario_cmd="-var-file=scenarios/${scenario}.tfvars"
+endif
+
 help:
 	@echo Usage: "${0} <command> [<command>]..."
 	@echo
@@ -38,8 +42,8 @@ init:
 	@./scripts/init.sh cloud-service-benchmarking-22 10
 
 setup:
-	@terraform -chdir=terraform init ${scenario}
-	@terraform -chdir=terraform apply ${scenario}
+	@terraform -chdir=terraform init ${scenario_cmd}
+	@terraform -chdir=terraform apply ${scenario_cmd}
 	@./scripts/await-ssh.sh
 
 restart:
@@ -67,6 +71,6 @@ clean:
 	@ansible-playbook --inventory hosts.ini playbooks/clean.yml
 
 destroy:
-	@terraform -chdir=terraform destroy ${scenario}
+	@terraform -chdir=terraform destroy ${scenario_cmd}
 
 analyse:

@@ -9,6 +9,6 @@ if [ -z $instances ]; then
 fi
 
 terraform -chdir=terraform init
-terraform -chdir=terraform apply $scenario $(for instance in $instances; do echo -replace=google_compute_instance.$instance; done) -auto-approve
+terraform -chdir=terraform apply $scenario_cmd $(for instance in $instances; do echo -replace=google_compute_instance.$instance; done) -auto-approve
 
 ./scripts/await-ssh.sh

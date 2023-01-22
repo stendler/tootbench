@@ -16,4 +16,4 @@ for s in $(./scripts/scenarios.sh); do
   fi
 done
 
-make scenario="$scenario_cmd" 0="$0 <scenario>" "$@"
+make scenario_cmd="$scenario_cmd" 0="$0 <scenario>" "$@"
