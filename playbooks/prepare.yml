@@ -42,30 +42,30 @@
         src: .env.production.jinja2
         dest: .env.production
     - name: Create cert directory
-      shell: "mkdir -p cert/{{ hostvars[inventory_hostname].IP }}/"
+      shell: "mkdir -p cert/{{ inventory_hostname }}/"
       args:
-        creates: cert/{{ hostvars[inventory_hostname].IP }}/
+        creates: cert/{{ inventory_hostname }}/
     - name: Install minica certificate
       copy:
-        src: cert/{{ hostvars[inventory_hostname].IP }}/cert.pem
+        src: cert/{{ inventory_hostname }}/cert.pem
         local_follow: true
-        dest: cert/{{ hostvars[inventory_hostname].IP }}/cert.pem
+        dest: cert/{{ inventory_hostname }}/cert.pem
     - name: Install minica private key
       copy:
-        src: cert/{{ hostvars[inventory_hostname].IP }}/key.pem
+        src: cert/{{ inventory_hostname }}/key.pem
         local_follow: true
-        dest: cert/{{ hostvars[inventory_hostname].IP }}/key.pem
+        dest: cert/{{ inventory_hostname }}/key.pem
 
     - name: Pre-compile Mastodon assets
       command:
         cmd: docker compose --project-name mastodon run --rm precompile-assets
       environment:
-        hostname: "{{ hostvars[inventory_hostname].IP }}"
+        hostname: "{{ inventory_hostname }}"
     - name: Migrate Mastodon database
       command:
         cmd: docker compose --project-name mastodon run --rm db-migrate
       environment:
-        hostname: "{{ hostvars[inventory_hostname].IP }}"
+        hostname: "{{ inventory_hostname }}"
       args:
         creates: mastodon/postgres14
     - name: Add util scripts
@@ -81,7 +81,7 @@
         creates: admin.txt
     - name: Create Mastodon users
       command:
-        cmd: sh createUser.sh 10 user {{ hostvars[inventory_hostname].IP }}
+        cmd: sh createUser.sh 10 user {{ inventory_hostname }}
       args:
         creates: users.txt
     - name: Let local users follow each other
