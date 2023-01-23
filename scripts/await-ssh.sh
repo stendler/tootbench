@@ -32,12 +32,6 @@ for instance in $(cat terraform/hosts); do
 
 done
 
-for ip in $(cat terraform/ip); do
-    if [ ! -d cert/$ip ]; then
-      docker run --rm -v "$HOST_VOLUME_MOUNT/cert:/cert" -u $(id -u):$(id -g) minica --domains $ip
-    fi
-done
-
 # wait for ansible to be able to ssh and cloud-init to finish
 ansible-playbook -i hosts.ini playbooks/await-init.yml
 

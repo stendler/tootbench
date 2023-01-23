@@ -36,7 +36,7 @@
         chdir: /home/ansible
         cmd: docker compose --project-name mastodon up --wait
       environment:
-        hostname: "{{ hostvars[inventory_hostname].IP }}"
+        hostname: "{{ inventory_hostname }}"
 
 - name: Start Benchmark
   hosts: clients

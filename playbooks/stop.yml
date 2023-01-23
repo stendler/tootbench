@@ -36,7 +36,7 @@
         chdir: /home/ansible
         cmd: docker compose --project-name mastodon stop
       environment:
-        hostname: "{{ hostvars[inventory_hostname].IP }}"
+        hostname: "{{ inventory_hostname }}"
 
 - name: Stopping Benchmark
   hosts: clients
