@@ -81,7 +81,7 @@
         creates: admin.txt
     - name: Create Mastodon users
       command:
-        cmd: sh createUser.sh 10 user {{ inventory_hostname }}
+        cmd: sh createUser.sh {{ hostvars[inventory_hostname].users }} user {{ inventory_hostname }}
       args:
         creates: users.txt
     - name: Let local users follow each other
