@@ -42,26 +42,30 @@
         src: .env.production.jinja2
         dest: .env.production
     - name: Create cert directory
-      shell: "mkdir -p cert/{{ inventory_hostname }}/"
+      shell: "mkdir -p cert/{{ hostvars[inventory_hostname].IP }}/"
       args:
-        creates: cert/{{ inventory_hostname }}/
+        creates: cert/{{ hostvars[inventory_hostname].IP }}/
     - name: Install minica certificate
       copy:
-        src: cert/{{ inventory_hostname }}/cert.pem
+        src: cert/{{ hostvars[inventory_hostname].IP }}/cert.pem
         local_follow: true
-        dest: cert/{{ inventory_hostname }}/cert.pem
+        dest: cert/{{ hostvars[inventory_hostname].IP }}/cert.pem
     - name: Install minica private key
       copy:
-        src: cert/{{ inventory_hostname }}/key.pem
+        src: cert/{{ hostvars[inventory_hostname].IP }}/key.pem
         local_follow: true
-        dest: cert/{{ inventory_hostname }}/key.pem
+        dest: cert/{{ hostvars[inventory_hostname].IP }}/key.pem
 
     - name: Pre-compile Mastodon assets
       command:
-        cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon run --rm precompile-assets"
+        cmd: docker compose --project-name mastodon run --rm precompile-assets
+      environment:
+        hostname: "{{ hostvars[inventory_hostname].IP }}"
     - name: Migrate Mastodon database
       command:
-        cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon run --rm db-migrate"
+        cmd: docker compose --project-name mastodon run --rm db-migrate
+      environment:
+        hostname: "{{ hostvars[inventory_hostname].IP }}"
       args:
         creates: mastodon/postgres14
     - name: Add util scripts
@@ -77,7 +81,7 @@
         creates: admin.txt
     - name: Create Mastodon users
       command:
-        cmd: sh createUser.sh 10 user {{ inventory_hostname }}
+        cmd: sh createUser.sh 10 user {{ hostvars[inventory_hostname].IP }}
       args:
         creates: users.txt
     - name: Let local users follow each other

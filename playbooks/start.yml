@@ -34,7 +34,9 @@
     - name: Start mastodon containers
       command:
         chdir: /home/ansible
-        cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon up --wait"
+        cmd: docker compose --project-name mastodon up --wait
+      environment:
+        hostname: "{{ hostvars[inventory_hostname].IP }}"
 
 - name: Start Benchmark
   hosts: clients
