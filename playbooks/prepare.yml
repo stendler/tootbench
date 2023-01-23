@@ -32,6 +32,10 @@
       copy:
         src: docker-stats.timer
         dest: /etc/systemd/system/
+    - name: Elastic - sysctl -w vm.max_map_count=262144
+      sysctl:
+        name: vm.max_map_count
+        value: 262144
     # (maybe?) netstat --continuous --tcp --udp
 
 - name: Setup and run Mastodon on the instances
@@ -68,6 +72,12 @@
         hostname: "{{ inventory_hostname }}"
       args:
         creates: mastodon/postgres14
+    - name: Create elasticsearch indeces
+      ignore_errors: true
+      command:
+        cmd: docker compose --project-name mastodon run --rm tootctl search deploy
+      environment:
+        hostname: "{{ inventory_hostname }}"
     - name: Add util scripts
       copy:
         src: scripts/
