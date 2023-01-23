@@ -73,6 +73,8 @@ services:
       - redis
     profiles:
       - setup
+    volumes:
+      - /etc/ssl/certs:/etc/ssl/certs:ro
 
   redis:
     restart: always
@@ -137,6 +139,7 @@ services:
       # - es
     volumes:
       - assets:/mastodon/public/:ro
+      - /etc/ssl/certs:/etc/ssl/certs:ro
 
   streaming:
     image: tootsuite/mastodon:v3.5.5
@@ -157,6 +160,8 @@ services:
     depends_on:
       - db
       - redis
+    volumes:
+      - /etc/ssl/certs:/etc/ssl/certs:ro
 
   sidekiq:
     image: tootsuite/mastodon:v3.5.5
@@ -174,6 +179,7 @@ services:
       - internal_network
     volumes:
       - assets:/mastodon/public/:ro
+      - /etc/ssl/certs:/etc/ssl/certs:ro
     healthcheck:
       test: ['CMD-SHELL', "ps aux | grep '[s]idekiq\ 6' || false"]
 
