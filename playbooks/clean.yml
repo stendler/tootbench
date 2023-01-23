@@ -23,6 +23,10 @@
       file:
         state: absent
         path: users.txt
+    - name: Delete remote user credentials
+      file:
+        state: absent
+        path: users
     - name: Delete admin credentials
       file:
         state: absent
