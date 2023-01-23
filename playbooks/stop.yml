@@ -34,7 +34,9 @@
     - name: Stop mastodon containers
       command:
         chdir: /home/ansible
-        cmd: bash -c "hostname=$(hostname) docker compose --project-name mastodon stop"
+        cmd: docker compose --project-name mastodon stop
+      environment:
+        hostname: "{{ hostvars[inventory_hostname].IP }}"
 
 - name: Stopping Benchmark
   hosts: clients
