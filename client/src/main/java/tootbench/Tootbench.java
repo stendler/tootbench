@@ -126,7 +126,7 @@ public class Tootbench {
 
     log.info("Cores: {}", Runtime.getRuntime().availableProcessors());
     for (Statuses user : userStatus) {
-      threadPool.scheduleWithFixedDelay(post(user), 0, 1100, MILLISECONDS);
+      threadPool.scheduleWithFixedDelay(post(user), 0, 1500, MILLISECONDS);
     }
   }
 
