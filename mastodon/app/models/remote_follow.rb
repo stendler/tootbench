@@ -36,6 +36,8 @@ class RemoteFollow
 
     username, domain = value.strip.gsub(/\A@/, '').split('@')
 
+    Rails.logger.debug "Value #{value} split to user #{username}@#{domain}"
+
     domain = begin
       if TagManager.instance.local_domain?(domain)
         nil
@@ -44,15 +46,22 @@ class RemoteFollow
       end
     end
 
+    Rails.logger.debug "Value #{value} normalized to user #{username}@#{domain}"
+
     [username, domain].compact.join('@')
   rescue Addressable::URI::InvalidURIError
     value
   end
 
   def fetch_template!
+    Rails.logger.debug "Fetch template - acc.blank? #{acct.blank?} - #{acct}"
     return missing_resource_error if acct.blank?
 
+    Rails.logger.debug "Fetch template - splitting acct into _, domain ..."
     _, domain = acct.split('@')
+
+    Rails.logger.debug "Fetch template - authorize_interaction_url: #{authorize_interaction_url}"
+    Rails.logger.debug "Fetch template - redirect_uri_template.nil? #{redirect_uri_template.nil?}"
 
     if domain.nil?
       @addressable_template = Addressable::Template.new("#{authorize_interaction_url}?uri={uri}")

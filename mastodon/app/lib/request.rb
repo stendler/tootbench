@@ -59,6 +59,7 @@ class Request
     begin
       response = http_client.public_send(@verb, @url.to_s, @options.merge(headers: headers))
     rescue => e
+      Rails.logger.debug "Request error #{e.message}"
       raise e.class, "#{e.message} on #{@url}", e.backtrace[0]
     end
 
@@ -196,7 +197,9 @@ class Request
 
         addresses.each do |address|
           begin
+            Rails.logger.debug "Checking private address? #{address}"
             check_private_address(address)
+            Rails.logger.debug "private address checked"
 
             sock     = ::Socket.new(address.is_a?(Resolv::IPv6) ? ::Socket::AF_INET6 : ::Socket::AF_INET, ::Socket::SOCK_STREAM, 0)
             sockaddr = ::Socket.pack_sockaddr_in(port, address.to_s)
@@ -213,6 +216,7 @@ class Request
             socks << sock
             addr_by_socket[sock] = sockaddr
           rescue => e
+            Rails.logger.debug "socket error #{e.message}"
             outer_e = e
           end
         end
@@ -246,6 +250,7 @@ class Request
         if outer_e
           raise outer_e
         else
+          Rails.logger.error "No address for #{host}"
           raise SocketError, "No address for #{host}"
         end
       end
