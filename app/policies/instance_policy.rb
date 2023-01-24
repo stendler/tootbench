@@ -2,14 +2,14 @@
 
 class InstancePolicy < ApplicationPolicy
   def index?
-    role.can?(:manage_federation)
+    admin?
   end
 
   def show?
-    role.can?(:manage_federation)
+    admin?
   end
 
   def destroy?
-    role.can?(:manage_federation)
+    admin?
   end
 end

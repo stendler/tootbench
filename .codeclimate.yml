@@ -26,11 +26,13 @@ plugins:
   bundler-audit:
     enabled: true
   eslint:
-    enabled: false
+    enabled: true
+    channel: eslint-7
   rubocop:
-    enabled: false
+    enabled: true
+    channel: rubocop-1-9-1
   sass-lint:
-    enabled: false
+    enabled: true
 exclude_patterns:
   - spec/
   - vendor/asset/

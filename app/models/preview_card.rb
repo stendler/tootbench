@@ -34,7 +34,7 @@
 class PreviewCard < ApplicationRecord
   include Attachmentable
 
-  IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].freeze
+  IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif'].freeze
   LIMIT = 1.megabytes
 
   BLURHASH_OPTIONS = {
@@ -48,9 +48,8 @@ class PreviewCard < ApplicationRecord
   enum link_type: [:unknown, :article]
 
   has_and_belongs_to_many :statuses
-  has_one :trend, class_name: 'PreviewCardTrend', inverse_of: :preview_card, dependent: :destroy
 
-  has_attached_file :image, processors: [:thumbnail, :blurhash_transcoder], styles: ->(f) { image_styles(f) }, convert_options: { all: '-quality 90 +profile "!icc,*" +set modify-date +set create-date' }, validate_media_type: false
+  has_attached_file :image, processors: [:thumbnail, :blurhash_transcoder], styles: ->(f) { image_styles(f) }, convert_options: { all: '-quality 80 -strip' }, validate_media_type: false
 
   validates :url, presence: true, uniqueness: true
   validates_attachment_content_type :image, content_type: IMAGE_MIME_TYPES
@@ -122,7 +121,7 @@ class PreviewCard < ApplicationRecord
         original: {
           geometry: '400x400>',
           file_geometry_parser: FastGeometryParser,
-          convert_options: '-coalesce',
+          convert_options: '-coalesce -strip',
           blurhash: BLURHASH_OPTIONS,
         },
       }

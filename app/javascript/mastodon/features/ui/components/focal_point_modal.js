@@ -176,14 +176,14 @@ class FocalPointModal extends ImmutablePureComponent {
 
   handleKeyDown = (e) => {
     if (e.keyCode === 13 && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      e.stopPropagation();
       this.props.onChangeDescription(e.target.value);
-      this.handleSubmit(e);
+      this.handleSubmit();
     }
   }
 
-  handleSubmit = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  handleSubmit = () => {
     this.props.onSave(this.props.description, this.props.focusX, this.props.focusY);
   }
 
@@ -313,7 +313,7 @@ class FocalPointModal extends ImmutablePureComponent {
         </div>
 
         <div className='report-modal__container'>
-          <form className='report-modal__comment' onSubmit={this.handleSubmit} >
+          <div className='report-modal__comment'>
             {focals && <p><FormattedMessage id='upload_modal.hint' defaultMessage='Click or drag the circle on the preview to choose the focal point which will always be in view on all thumbnails.' /></p>}
 
             {thumbnailable && (
@@ -361,23 +361,12 @@ class FocalPointModal extends ImmutablePureComponent {
             </div>
 
             <div className='setting-text__toolbar'>
-              <button
-                type='button'
-                disabled={detecting || media.get('type') !== 'image' || is_changing_upload}
-                className='link-button'
-                onClick={this.handleTextDetection}
-              >
-                <FormattedMessage id='upload_modal.detect_text' defaultMessage='Detect text from picture' />
-              </button>
+              <button disabled={detecting || media.get('type') !== 'image' || is_changing_upload} className='link-button' onClick={this.handleTextDetection}><FormattedMessage id='upload_modal.detect_text' defaultMessage='Detect text from picture' /></button>
               <CharacterCounter max={1500} text={detecting ? '' : description} />
             </div>
 
-            <Button
-              type='submit'
-              disabled={!dirty || detecting || isUploadingThumbnail || length(description) > 1500 || is_changing_upload}
-              text={intl.formatMessage(is_changing_upload ? messages.applying : messages.apply)}
-            />
-          </form>
+            <Button disabled={!dirty || detecting || isUploadingThumbnail || length(description) > 1500 || is_changing_upload} text={intl.formatMessage(is_changing_upload ? messages.applying : messages.apply)} onClick={this.handleSubmit} />
+          </div>
 
           <div className='focal-point-modal__content'>
             {focals && (

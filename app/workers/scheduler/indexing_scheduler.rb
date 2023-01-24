@@ -7,8 +7,6 @@ class Scheduler::IndexingScheduler
   sidekiq_options retry: 0
 
   def perform
-    return unless Chewy.enabled?
-
     indexes.each do |type|
       with_redis do |redis|
         ids = redis.smembers("chewy:queue:#{type.name}")

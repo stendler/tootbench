@@ -43,8 +43,4 @@ class AccountWarning < ApplicationRecord
   def overruled?
     overruled_at.present?
   end
-
-  def to_log_human_identifier
-    target_account.acct
-  end
 end

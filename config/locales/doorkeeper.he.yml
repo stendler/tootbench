@@ -138,7 +138,7 @@ he:
         push: התראות בדחיפה
         reports: דיווחים
         search: חיפוש
-        statuses: הודעות
+        statuses: חצרוצים
     layouts:
       admin:
         nav:
@@ -168,13 +168,13 @@ he:
       read:notifications: צפיה בהתראותיך
       read:reports: צפיה בדוחותיך
       read:search: חיפוש מטעם עצמך
-      read:statuses: צפיה בכל ההודעות
+      read:statuses: צפיה בכל החצרוצים
       write: להפיץ הודעות בשמך
       write:accounts: שינוי הפרופיל שלך
       write:blocks: חסימת חשבונות ודומיינים
-      write:bookmarks: סימון הודעות
+      write:bookmarks: סימון חצרוצים
       write:conversations: השתקת ומחיקת שיחות
-      write:favourites: הודעות מחובבות
+      write:favourites: חצרוצים מחובבים
       write:filters: יצירת מסננים
       write:follows: עקיבה אחר אנשים
       write:lists: יצירת רשימות
@@ -182,4 +182,4 @@ he:
       write:mutes: השתקת אנשים ושיחות
       write:notifications: ניקוי התראותיך
       write:reports: דיווח על אנשים אחרים
-      write:statuses: פרסום הודעות
+      write:statuses: פרסום חצרוצים

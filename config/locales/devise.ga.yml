@@ -1,9 +1,1 @@
----
 ga:
-  devise:
-    mailer:
-      reset_password_instructions:
-        action: Athraigh pasfhocal
-  errors:
-    messages:
-      not_found: níor aimsíodh é

@@ -21,6 +21,7 @@ import {
   updateReaction as updateAnnouncementsReaction,
   deleteAnnouncement,
 } from './announcements';
+import { fetchFilters } from './filters';
 import { getLocale } from '../locales';
 
 const { messages } = getLocale();
@@ -95,6 +96,9 @@ export const connectTimelineStream = (timelineId, channelName, params = {}, opti
           break;
         case 'conversation':
           dispatch(updateConversations(JSON.parse(data.payload)));
+          break;
+        case 'filters_changed':
+          dispatch(fetchFilters());
           break;
         case 'announcement':
           dispatch(updateAnnouncements(JSON.parse(data.payload)));

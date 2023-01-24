@@ -2,10 +2,10 @@
 
 class PreviewCardProviderPolicy < ApplicationPolicy
   def index?
-    role.can?(:manage_taxonomies)
+    staff?
   end
 
   def review?
-    role.can?(:manage_taxonomies)
+    staff?
   end
 end

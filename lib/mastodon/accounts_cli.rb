@@ -54,10 +54,10 @@ module Mastodon
 
     option :email, required: true
     option :confirmed, type: :boolean
-    option :role
+    option :role, default: 'user', enum: %w(user moderator admin)
     option :reattach, type: :boolean
     option :force, type: :boolean
-    desc 'create USERNAME', 'Create a new user account'
+    desc 'create USERNAME', 'Create a new user'
     long_desc <<-LONG_DESC
       Create a new user account with a given USERNAME and an
       e-mail address provided with --email.
@@ -65,7 +65,8 @@ module Mastodon
       With the --confirmed option, the confirmation e-mail will
       be skipped and the account will be active straight away.
 
-      With the --role option, the role can be supplied.
+      With the --role option one of  "user", "admin" or "moderator"
+      can be supplied. Defaults to "user"
 
       With the --reattach option, the new user will be reattached
       to a given existing username of an old account. If the old
@@ -74,22 +75,9 @@ module Mastodon
       username to the new account anyway.
     LONG_DESC
     def create(username)
-      role_id  = nil
-
-      if options[:role]
-        role = UserRole.find_by(name: options[:role])
-
-        if role.nil?
-          say('Cannot find user role with that name', :red)
-          exit(1)
-        end
-
-        role_id = role.id
-      end
-
       account  = Account.new(username: username)
       password = SecureRandom.hex
-      user     = User.new(email: options[:email], password: password, agreement: true, approved: true, role_id: role_id, confirmed_at: options[:confirmed] ? Time.now.utc : nil, bypass_invite_request_check: true)
+      user     = User.new(email: options[:email], password: password, agreement: true, approved: true, admin: options[:role] == 'admin', moderator: options[:role] == 'moderator', confirmed_at: options[:confirmed] ? Time.now.utc : nil, bypass_invite_request_check: true)
 
       if options[:reattach]
         account = Account.find_local(username) || Account.new(username: username)
@@ -118,15 +106,14 @@ module Mastodon
         user.errors.to_h.each do |key, error|
           say('Failure/Error: ', :red)
           say(key)
-          say("    #{error}", :red)
+          say('    ' + error, :red)
         end
 
         exit(1)
       end
     end
 
-    option :role
-    option :remove_role, type: :boolean
+    option :role, enum: %w(user moderator admin)
     option :email
     option :confirm, type: :boolean
     option :enable, type: :boolean
@@ -134,12 +121,12 @@ module Mastodon
     option :disable_2fa, type: :boolean
     option :approve, type: :boolean
     option :reset_password, type: :boolean
-    desc 'modify USERNAME', 'Modify a user account'
+    desc 'modify USERNAME', 'Modify a user'
     long_desc <<-LONG_DESC
       Modify a user account.
 
-      With the --role option, update the user's role. To remove the user's
-      role, i.e. demote to normal user, use --remove-role.
+      With the --role option, update the user's role to one of "user",
+      "moderator" or "admin".
 
       With the --email option, update the user's e-mail address. With
       the --confirm option, mark the user's e-mail as confirmed.
@@ -165,16 +152,8 @@ module Mastodon
       end
 
       if options[:role]
-        role = UserRole.find_by(name: options[:role])
-
-        if role.nil?
-          say('Cannot find user role with that name', :red)
-          exit(1)
-        end
-
-        user.role_id = role.id
-      elsif options[:remove_role]
-        user.role_id = nil
+        user.admin = options[:role] == 'admin'
+        user.moderator = options[:role] == 'moderator'
       end
 
       password = SecureRandom.hex if options[:reset_password]
@@ -193,7 +172,7 @@ module Mastodon
         user.errors.to_h.each do |key, error|
           say('Failure/Error: ', :red)
           say(key)
-          say("    #{error}", :red)
+          say('    ' + error, :red)
         end
 
         exit(1)
@@ -340,7 +319,7 @@ module Mastodon
 
       unless skip_domains.empty?
         say('The following domains were not available during the check:', :yellow)
-        skip_domains.each { |domain| say("    #{domain}") }
+        skip_domains.each { |domain| say('    ' + domain) }
       end
     end
 

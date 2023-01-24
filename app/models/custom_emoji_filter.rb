@@ -39,7 +39,7 @@ class CustomEmojiFilter
     when 'shortcode'
       CustomEmoji.search(value.strip)
     else
-      raise Mastodon::InvalidParameterError, "Unknown filter: #{key}"
+      raise "Unknown filter: #{key}"
     end
   end
 end

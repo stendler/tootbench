@@ -18,15 +18,17 @@ module Mastodon
       When suspending a local user, a hash of a "canonical" version of their e-mail
       address is stored to prevent them from signing up again.
 
-      This command can be used to find whether a known email address is blocked.
+      This command can be used to find whether a known email address is blocked,
+      and if so, which account it was attached to.
     LONG_DESC
     def find(email)
-      accts = CanonicalEmailBlock.matching_email(email)
-
+      accts = CanonicalEmailBlock.find_blocks(email).map(&:reference_account).map(&:acct).to_a
       if accts.empty?
-        say("#{email} is not blocked", :green)
+        say("#{email} is not blocked", :yellow)
       else
-        say("#{email} is blocked", :red)
+        accts.each do |acct|
+          say(acct, :white)
+        end
       end
     end
 
@@ -38,13 +40,24 @@ module Mastodon
       This command allows removing a canonical email block.
     LONG_DESC
     def remove(email)
-      blocks = CanonicalEmailBlock.matching_email(email)
-
+      blocks = CanonicalEmailBlock.find_blocks(email)
       if blocks.empty?
-        say("#{email} is not blocked", :green)
+        say("#{email} is not blocked", :yellow)
       else
         blocks.destroy_all
-        say("Unblocked #{email}", :green)
+        say("Removed canonical email block for #{email}", :green)
+      end
+    end
+
+    private
+
+    def color(processed, failed)
+      if !processed.zero? && failed.zero?
+        :green
+      elsif failed.zero?
+        :yellow
+      else
+        :red
       end
     end
   end

@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { submitReport } from 'mastodon/actions/reports';
 import { expandAccountTimeline } from 'mastodon/actions/timelines';
-import { fetchServer } from 'mastodon/actions/server';
+import { fetchRules } from 'mastodon/actions/rules';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { makeGetAccount } from 'mastodon/selectors';
@@ -117,7 +117,7 @@ class ReportModal extends ImmutablePureComponent {
     const { dispatch, accountId } = this.props;
 
     dispatch(expandAccountTimeline(accountId, { withReplies: true }));
-    dispatch(fetchServer());
+    dispatch(fetchRules());
   }
 
   render () {

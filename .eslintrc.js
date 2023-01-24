@@ -12,7 +12,7 @@ module.exports = {
     ATTACHMENT_HOST: false,
   },
 
-  parser: '@babel/eslint-parser',
+  parser: 'babel-eslint',
 
   plugins: [
     'react',
@@ -27,7 +27,7 @@ module.exports = {
       experimentalObjectRestSpread: true,
       jsx: true,
     },
-    ecmaVersion: 2021,
+    ecmaVersion: 2018,
   },
 
   settings: {

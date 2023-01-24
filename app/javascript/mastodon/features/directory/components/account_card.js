@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { makeGetAccount } from 'mastodon/selectors';
 import Avatar from 'mastodon/components/avatar';
 import DisplayName from 'mastodon/components/display_name';
-import { Link } from 'react-router-dom';
+import Permalink from 'mastodon/components/permalink';
 import Button from 'mastodon/components/button';
 import { FormattedMessage, injectIntl, defineMessages } from 'react-intl';
 import { autoPlayGif, me, unfollowModal } from 'mastodon/initial_state';
@@ -23,8 +23,7 @@ import classNames from 'classnames';
 const messages = defineMessages({
   unfollow: { id: 'account.unfollow', defaultMessage: 'Unfollow' },
   follow: { id: 'account.follow', defaultMessage: 'Follow' },
-  cancel_follow_request: { id: 'account.cancel_follow_request', defaultMessage: 'Withdraw follow request' },
-  cancelFollowRequestConfirm: { id: 'confirmations.cancel_follow_request.confirm', defaultMessage: 'Withdraw request' },
+  cancel_follow_request: { id: 'account.cancel_follow_request', defaultMessage: 'Cancel follow request' },
   requested: { id: 'account.requested', defaultMessage: 'Awaiting approval. Click to cancel follow request' },
   unblock: { id: 'account.unblock_short', defaultMessage: 'Unblock' },
   unmute: { id: 'account.unmute_short', defaultMessage: 'Unmute' },
@@ -44,7 +43,10 @@ const makeMapStateToProps = () => {
 
 const mapDispatchToProps = (dispatch, { intl }) => ({
   onFollow(account) {
-    if (account.getIn(['relationship', 'following'])) {
+    if (
+      account.getIn(['relationship', 'following']) ||
+      account.getIn(['relationship', 'requested'])
+    ) {
       if (unfollowModal) {
         dispatch(
           openModal('CONFIRM', {
@@ -59,16 +61,6 @@ const mapDispatchToProps = (dispatch, { intl }) => ({
             onConfirm: () => dispatch(unfollowAccount(account.get('id'))),
           }),
         );
-      } else {
-        dispatch(unfollowAccount(account.get('id')));
-      }
-    } else if (account.getIn(['relationship', 'requested'])) {
-      if (unfollowModal) {
-        dispatch(openModal('CONFIRM', {
-          message: <FormattedMessage id='confirmations.cancel_follow_request.message' defaultMessage='Are you sure you want to withdraw your request to follow {name}?' values={{ name: <strong>@{account.get('acct')}</strong> }} />,
-          confirm: intl.formatMessage(messages.cancelFollowRequestConfirm),
-          onConfirm: () => dispatch(unfollowAccount(account.get('id'))),
-        }));
       } else {
         dispatch(unfollowAccount(account.get('id')));
       }
@@ -169,7 +161,7 @@ class AccountCard extends ImmutablePureComponent {
 
     return (
       <div className='account-card'>
-        <Link to={`/@${account.get('acct')}`} className='account-card__permalink'>
+        <Permalink href={account.get('url')} to={`/@${account.get('acct')}`} className='account-card__permalink'>
           <div className='account-card__header'>
             <img
               src={
@@ -183,7 +175,7 @@ class AccountCard extends ImmutablePureComponent {
             <div className='account-card__title__avatar'><Avatar account={account} size={56} /></div>
             <DisplayName account={account} />
           </div>
-        </Link>
+        </Permalink>
 
         {account.get('note').length > 0 && (
           <div

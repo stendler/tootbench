@@ -30,7 +30,7 @@ class Admin::AppealFilter
     when 'status'
       status_scope(value)
     else
-      raise Mastodon::InvalidParameterError, "Unknown filter: #{key}"
+      raise "Unknown filter: #{key}"
     end
   end
 
@@ -43,7 +43,7 @@ class Admin::AppealFilter
     when 'pending'
       Appeal.pending
     else
-      raise Mastodon::InvalidParameterError, "Unknown status: #{value}"
+      raise "Unknown status: #{value}"
     end
   end
 end

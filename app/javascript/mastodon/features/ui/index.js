@@ -3,7 +3,7 @@ import React from 'react';
 import { HotKeys } from 'react-hotkeys';
 import { defineMessages, injectIntl } from 'react-intl';
 import { connect } from 'react-redux';
-import { Redirect, Route, withRouter } from 'react-router-dom';
+import { Redirect, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import NotificationsContainer from './containers/notifications_container';
 import LoadingBarContainer from './containers/loading_bar_container';
@@ -13,14 +13,15 @@ import { debounce } from 'lodash';
 import { uploadCompose, resetCompose, changeComposeSpoilerness } from '../../actions/compose';
 import { expandHomeTimeline } from '../../actions/timelines';
 import { expandNotifications } from '../../actions/notifications';
-import { fetchServer } from '../../actions/server';
+import { fetchFilters } from '../../actions/filters';
+import { fetchRules } from '../../actions/rules';
 import { clearHeight } from '../../actions/height_cache';
 import { focusApp, unfocusApp, changeLayout } from 'mastodon/actions/app';
 import { synchronouslySubmitMarkers, submitMarkers, fetchMarkers } from 'mastodon/actions/markers';
 import { WrappedSwitch, WrappedRoute } from './util/react_router_helpers';
-import BundleColumnError from './components/bundle_column_error';
 import UploadArea from './components/upload_area';
 import ColumnsAreaContainer from './containers/columns_area_container';
+import DocumentTitle from './components/document_title';
 import PictureInPicture from 'mastodon/features/picture_in_picture';
 import {
   Compose,
@@ -40,6 +41,7 @@ import {
   HashtagTimeline,
   Notifications,
   FollowRequests,
+  GenericNotFound,
   FavouritedStatuses,
   BookmarkedStatuses,
   ListTimeline,
@@ -51,12 +53,9 @@ import {
   Directory,
   Explore,
   FollowRecommendations,
-  About,
-  PrivacyPolicy,
 } from './util/async-components';
-import initialState, { me, owner, singleUserMode, showTrends } from '../../initial_state';
+import { me } from '../../initial_state';
 import { closeOnboarding, INTRODUCTION_VERSION } from 'mastodon/actions/onboarding';
-import Header from './components/header';
 
 // Dummy import, to make sure that <Status /> ends up in the application bundle.
 // Without this it ends up in ~8 very commonly used bundles.
@@ -112,10 +111,6 @@ const keyMap = {
 
 class SwitchingColumnsArea extends React.PureComponent {
 
-  static contextTypes = {
-    identity: PropTypes.object,
-  };
-
   static propTypes = {
     children: PropTypes.node,
     location: PropTypes.object,
@@ -145,39 +140,20 @@ class SwitchingColumnsArea extends React.PureComponent {
 
   setRef = c => {
     if (c) {
-      this.node = c;
+      this.node = c.getWrappedInstance();
     }
   }
 
   render () {
     const { children, mobile } = this.props;
-    const { signedIn } = this.context.identity;
-
-    let redirect;
-
-    if (signedIn) {
-      if (mobile) {
-        redirect = <Redirect from='/' to='/home' exact />;
-      } else {
-        redirect = <Redirect from='/' to='/getting-started' exact />;
-      }
-    } else if (singleUserMode && owner && initialState?.accounts[owner]) {
-      redirect = <Redirect from='/' to={`/@${initialState.accounts[owner].username}`} exact />;
-    } else if (showTrends) {
-      redirect = <Redirect from='/' to='/explore' exact />;
-    } else {
-      redirect = <Redirect from='/' to='/about' exact />;
-    }
+    const redirect = mobile ? <Redirect from='/' to='/home' exact /> : <Redirect from='/' to='/getting-started' exact />;
 
     return (
       <ColumnsAreaContainer ref={this.setRef} singleColumn={mobile}>
         <WrappedSwitch>
           {redirect}
-
           <WrappedRoute path='/getting-started' component={GettingStarted} content={children} />
           <WrappedRoute path='/keyboard-shortcuts' component={KeyboardShortcuts} content={children} />
-          <WrappedRoute path='/about' component={About} content={children} />
-          <WrappedRoute path='/privacy-policy' component={PrivacyPolicy} content={children} />
 
           <WrappedRoute path={['/home', '/timelines/home']} component={HomeTimeline} content={children} />
           <WrappedRoute path={['/public', '/timelines/public']} exact component={PublicTimeline} content={children} />
@@ -197,10 +173,9 @@ class SwitchingColumnsArea extends React.PureComponent {
           <WrappedRoute path={['/publish', '/statuses/new']} component={Compose} content={children} />
 
           <WrappedRoute path={['/@:acct', '/accounts/:id']} exact component={AccountTimeline} content={children} />
-          <WrappedRoute path='/@:acct/tagged/:tagged?' exact component={AccountTimeline} content={children} />
           <WrappedRoute path={['/@:acct/with_replies', '/accounts/:id/with_replies']} component={AccountTimeline} content={children} componentParams={{ withReplies: true }} />
-          <WrappedRoute path={['/accounts/:id/followers', '/users/:acct/followers', '/@:acct/followers']} component={Followers} content={children} />
-          <WrappedRoute path={['/accounts/:id/following', '/users/:acct/following', '/@:acct/following']} component={Following} content={children} />
+          <WrappedRoute path={['/@:acct/followers', '/accounts/:id/followers']} component={Followers} content={children} />
+          <WrappedRoute path={['/@:acct/following', '/accounts/:id/following']} component={Following} content={children} />
           <WrappedRoute path={['/@:acct/media', '/accounts/:id/media']} component={AccountGallery} content={children} />
           <WrappedRoute path='/@:acct/:statusId' exact component={Status} content={children} />
           <WrappedRoute path='/@:acct/:statusId/reblogs' component={Reblogs} content={children} />
@@ -219,7 +194,7 @@ class SwitchingColumnsArea extends React.PureComponent {
           <WrappedRoute path='/mutes' component={Mutes} content={children} />
           <WrappedRoute path='/lists' component={Lists} content={children} />
 
-          <Route component={BundleColumnError} />
+          <WrappedRoute component={GenericNotFound} content={children} />
         </WrappedSwitch>
       </ColumnsAreaContainer>
     );
@@ -234,7 +209,6 @@ class UI extends React.PureComponent {
 
   static contextTypes = {
     router: PropTypes.object.isRequired,
-    identity: PropTypes.object.isRequired,
   };
 
   static propTypes = {
@@ -290,7 +264,7 @@ class UI extends React.PureComponent {
       this.dragTargets.push(e.target);
     }
 
-    if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files') && this.props.canUploadMore && this.context.identity.signedIn) {
+    if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files') && this.props.canUploadMore) {
       this.setState({ draggingOver: true });
     }
   }
@@ -318,7 +292,7 @@ class UI extends React.PureComponent {
     this.setState({ draggingOver: false });
     this.dragTargets = [];
 
-    if (e.dataTransfer && e.dataTransfer.files.length >= 1 && this.props.canUploadMore && this.context.identity.signedIn) {
+    if (e.dataTransfer && e.dataTransfer.files.length >= 1 && this.props.canUploadMore) {
       this.props.dispatch(uploadCompose(e.dataTransfer.files));
     }
   }
@@ -370,8 +344,6 @@ class UI extends React.PureComponent {
   }
 
   componentDidMount () {
-    const { signedIn } = this.context.identity;
-
     window.addEventListener('focus', this.handleWindowFocus, false);
     window.addEventListener('blur', this.handleWindowBlur, false);
     window.addEventListener('beforeunload', this.handleBeforeUnload, false);
@@ -388,18 +360,16 @@ class UI extends React.PureComponent {
     }
 
     // On first launch, redirect to the follow recommendations page
-    if (signedIn && this.props.firstLaunch) {
+    if (this.props.firstLaunch) {
       this.context.router.history.replace('/start');
       this.props.dispatch(closeOnboarding());
     }
 
-    if (signedIn) {
-      this.props.dispatch(fetchMarkers());
-      this.props.dispatch(expandHomeTimeline());
-      this.props.dispatch(expandNotifications());
-
-      setTimeout(() => this.props.dispatch(fetchServer()), 3000);
-    }
+    this.props.dispatch(fetchMarkers());
+    this.props.dispatch(expandHomeTimeline());
+    this.props.dispatch(expandNotifications());
+    setTimeout(() => this.props.dispatch(fetchFilters()), 500);
+    setTimeout(() => this.props.dispatch(fetchRules()), 3000);
 
     this.hotkeys.__mousetrap__.stopCallback = (e, element) => {
       return ['TEXTAREA', 'SELECT', 'INPUT'].includes(element.tagName);
@@ -568,8 +538,6 @@ class UI extends React.PureComponent {
     return (
       <HotKeys keyMap={keyMap} handlers={handlers} ref={this.setHotkeysRef} attach={window} focused>
         <div className={classNames('ui', { 'is-composing': isComposing })} ref={this.setRef} style={{ pointerEvents: dropdownMenuIsOpen ? 'none' : null }}>
-          <Header />
-
           <SwitchingColumnsArea location={location} mobile={layout === 'mobile' || layout === 'single-column'}>
             {children}
           </SwitchingColumnsArea>
@@ -579,6 +547,7 @@ class UI extends React.PureComponent {
           <LoadingBarContainer className='loading-bar' />
           <ModalContainer />
           <UploadArea active={draggingOver} onClose={this.closeUploadModal} />
+          <DocumentTitle />
         </div>
       </HotKeys>
     );

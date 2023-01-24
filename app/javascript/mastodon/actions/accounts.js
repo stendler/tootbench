@@ -536,12 +536,10 @@ export function expandFollowingFail(id, error) {
 
 export function fetchRelationships(accountIds) {
   return (dispatch, getState) => {
-    const state = getState();
-    const loadedRelationships = state.get('relationships');
+    const loadedRelationships = getState().get('relationships');
     const newAccountIds = accountIds.filter(id => loadedRelationships.get(id, null) === null);
-    const signedIn = !!state.getIn(['meta', 'me']);
 
-    if (!signedIn || newAccountIds.length === 0) {
+    if (newAccountIds.length === 0) {
       return;
     }
 
