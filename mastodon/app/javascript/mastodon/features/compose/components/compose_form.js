@@ -27,7 +27,7 @@ const allowedAroundShortCode = '><\u0085\u0020\u00a0\u1680\u2000\u2001\u2002\u20
 const messages = defineMessages({
   placeholder: { id: 'compose_form.placeholder', defaultMessage: 'What is on your mind?' },
   spoiler_placeholder: { id: 'compose_form.spoiler_placeholder', defaultMessage: 'Write your warning here' },
-  publish: { id: 'compose_form.publish', defaultMessage: 'Publish' },
+  publish: { id: 'compose_form.publish', defaultMessage: 'Toot' },
   publishLoud: { id: 'compose_form.publish_loud', defaultMessage: '{publish}!' },
   saveChanges: { id: 'compose_form.save_changes', defaultMessage: 'Save changes' },
 });
@@ -93,7 +93,7 @@ class ComposeForm extends ImmutablePureComponent {
     return !(isSubmitting || isUploading || isChangingUpload || length(fulltext) > 500 || (isOnlyWhitespace && !anyMedia));
   }
 
-  handleSubmit = (e) => {
+  handleSubmit = () => {
     if (this.props.text !== this.autosuggestTextarea.textarea.value) {
       // Something changed the text inside the textarea (e.g. browser extensions like Grammarly)
       // Update the state to match the current text
@@ -105,10 +105,6 @@ class ComposeForm extends ImmutablePureComponent {
     }
 
     this.props.onSubmit(this.context.router ? this.context.router.history : null);
-
-    if (e) {
-      e.preventDefault();
-    }
   }
 
   onSuggestionsClearRequested = () => {
@@ -221,7 +217,7 @@ class ComposeForm extends ImmutablePureComponent {
     }
 
     return (
-      <form className='compose-form' onSubmit={this.handleSubmit}>
+      <div className='compose-form'>
         <WarningContainer />
 
         <ReplyIndicatorContainer />
@@ -283,15 +279,10 @@ class ComposeForm extends ImmutablePureComponent {
 
         <div className='compose-form__publish'>
           <div className='compose-form__publish-button-wrapper'>
-            <Button
-              type='submit'
-              text={publishText}
-              disabled={!this.canSubmit()}
-              block
-            />
+            <Button text={publishText} onClick={this.handleSubmit} disabled={!this.canSubmit()} block />
           </div>
         </div>
-      </form>
+      </div>
     );
   }
 

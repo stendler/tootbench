@@ -12,8 +12,6 @@ module Admin
     end
 
     def batch
-      authorize :email_domain_block, :index?
-
       @form = Form::EmailDomainBlockBatch.new(form_email_domain_block_batch_params.merge(current_account: current_account, action: action_from_button))
       @form.save
     rescue ActionController::ParameterMissing

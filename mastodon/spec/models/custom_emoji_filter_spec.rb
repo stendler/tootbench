@@ -50,10 +50,10 @@ RSpec.describe CustomEmojiFilter do
       context 'else' do
         let(:params) { { else: 'else' } }
 
-        it 'raises Mastodon::InvalidParameterError' do
+        it 'raises RuntimeError' do
           expect do
             subject
-          end.to raise_error(Mastodon::InvalidParameterError, /Unknown filter: else/)
+          end.to raise_error(RuntimeError, /Unknown filter: else/)
         end
       end
     end

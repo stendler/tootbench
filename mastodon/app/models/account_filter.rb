@@ -4,7 +4,7 @@ class AccountFilter
   KEYS = %i(
     origin
     status
-    role_ids
+    permissions
     username
     by_domain
     display_name
@@ -26,7 +26,7 @@ class AccountFilter
     params.each do |key, value|
       next if key.to_s == 'page'
 
-      scope.merge!(scope_for(key, value)) if value.present?
+      scope.merge!(scope_for(key, value.to_s.strip)) if value.present?
     end
 
     scope
@@ -38,18 +38,18 @@ class AccountFilter
     case key.to_s
     when 'origin'
       origin_scope(value)
-    when 'role_ids'
-      role_scope(value)
+    when 'permissions'
+      permissions_scope(value)
     when 'status'
       status_scope(value)
     when 'by_domain'
-      Account.where(domain: value.to_s)
+      Account.where(domain: value)
     when 'username'
-      Account.matches_username(value.to_s)
+      Account.matches_username(value)
     when 'display_name'
-      Account.matches_display_name(value.to_s)
+      Account.matches_display_name(value)
     when 'email'
-      accounts_with_users.merge(User.matches_email(value.to_s))
+      accounts_with_users.merge(User.matches_email(value))
     when 'ip'
       valid_ip?(value) ? accounts_with_users.merge(User.matches_ip(value).group('users.id, accounts.id')) : Account.none
     when 'invited_by'
@@ -57,7 +57,7 @@ class AccountFilter
     when 'order'
       order_scope(value)
     else
-      raise Mastodon::InvalidParameterError, "Unknown filter: #{key}"
+      raise "Unknown filter: #{key}"
     end
   end
 
@@ -68,7 +68,7 @@ class AccountFilter
     when 'remote'
       Account.remote
     else
-      raise Mastodon::InvalidParameterError, "Unknown origin: #{value}"
+      raise "Unknown origin: #{value}"
     end
   end
 
@@ -84,10 +84,8 @@ class AccountFilter
       accounts_with_users.merge(User.disabled)
     when 'silenced'
       Account.silenced
-    when 'sensitized'
-      Account.sensitized
     else
-      raise Mastodon::InvalidParameterError, "Unknown status: #{value}"
+      raise "Unknown status: #{value}"
     end
   end
 
@@ -98,7 +96,7 @@ class AccountFilter
     when 'recent'
       Account.recent
     else
-      raise Mastodon::InvalidParameterError, "Unknown order: #{value}"
+      raise "Unknown order: #{value}"
     end
   end
 
@@ -106,8 +104,13 @@ class AccountFilter
     Account.left_joins(user: :invite).merge(Invite.where(user_id: value.to_s))
   end
 
-  def role_scope(value)
-    accounts_with_users.merge(User.where(role_id: Array(value).map(&:to_s)))
+  def permissions_scope(value)
+    case value.to_s
+    when 'staff'
+      accounts_with_users.merge(User.staff)
+    else
+      raise "Unknown permissions: #{value}"
+    end
   end
 
   def accounts_with_users
@@ -115,7 +118,7 @@ class AccountFilter
   end
 
   def valid_ip?(value)
-    IPAddr.new(value.to_s) && true
+    IPAddr.new(value) && true
   rescue IPAddr::InvalidAddressError
     false
   end

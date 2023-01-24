@@ -31,7 +31,7 @@ class InviteFilter
     when 'expired'
       Invite.expired
     else
-      raise Mastodon::InvalidParameterError, "Unknown filter: #{key}"
+      raise "Unknown filter: #{key}"
     end
   end
 end

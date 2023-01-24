@@ -8,27 +8,19 @@ class Api::V1::Trends::TagsController < Api::BaseController
   DEFAULT_TAGS_LIMIT = 10
 
   def index
-    render json: @tags, each_serializer: REST::TagSerializer, relationships: TagRelationshipsPresenter.new(@tags, current_user&.account_id)
+    render json: @tags, each_serializer: REST::TagSerializer
   end
 
   private
 
-  def enabled?
-    Setting.trends
-  end
-
   def set_tags
     @tags = begin
-      if enabled?
-        tags_from_trends.offset(offset_param).limit(limit_param(DEFAULT_TAGS_LIMIT))
+      if Setting.trends
+        Trends.tags.query.allowed.offset(offset_param).limit(limit_param(DEFAULT_TAGS_LIMIT))
       else
         []
       end
     end
-  end
-
-  def tags_from_trends
-    Trends.tags.query.allowed
   end
 
   def insert_pagination_headers

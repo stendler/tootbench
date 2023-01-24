@@ -2,7 +2,7 @@
 
 class AccountWarningPolicy < ApplicationPolicy
   def show?
-    target? || role.can?(:manage_appeals)
+    target? || staff?
   end
 
   def appeal?

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { injectIntl, defineMessages, FormattedMessage } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 import { connect } from 'react-redux';
 import { expandSearch } from 'mastodon/actions/search';
 import Account from 'mastodon/containers/account_container';
@@ -10,16 +10,10 @@ import { ImmutableHashtag as Hashtag } from 'mastodon/components/hashtag';
 import { List as ImmutableList } from 'immutable';
 import LoadMore from 'mastodon/components/load_more';
 import LoadingIndicator from 'mastodon/components/loading_indicator';
-import { Helmet } from 'react-helmet';
-
-const messages = defineMessages({
-  title: { id: 'search_results.title', defaultMessage: 'Search for {q}' },
-});
 
 const mapStateToProps = state => ({
   isLoading: state.getIn(['search', 'isLoading']),
   results: state.getIn(['search', 'results']),
-  q: state.getIn(['search', 'searchTerm']),
 });
 
 const appendLoadMore = (id, list, onLoadMore) => {
@@ -43,7 +37,6 @@ const renderStatuses = (results, onLoadMore) => appendLoadMore('statuses', resul
 )), onLoadMore);
 
 export default @connect(mapStateToProps)
-@injectIntl
 class Results extends React.PureComponent {
 
   static propTypes = {
@@ -51,8 +44,6 @@ class Results extends React.PureComponent {
     isLoading: PropTypes.bool,
     multiColumn: PropTypes.bool,
     dispatch: PropTypes.func.isRequired,
-    q: PropTypes.string,
-    intl: PropTypes.object,
   };
 
   state = {
@@ -73,7 +64,7 @@ class Results extends React.PureComponent {
   }
 
   render () {
-    const { intl, isLoading, q, results } = this.props;
+    const { isLoading, results } = this.props;
     const { type } = this.state;
 
     let filteredResults = ImmutableList();
@@ -115,10 +106,6 @@ class Results extends React.PureComponent {
         <div className='explore__search-results'>
           {isLoading ? <LoadingIndicator /> : filteredResults}
         </div>
-
-        <Helmet>
-          <title>{intl.formatMessage(messages.title, { q })}</title>
-        </Helmet>
       </React.Fragment>
     );
   }

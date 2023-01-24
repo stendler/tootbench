@@ -29,7 +29,7 @@ class AccountAlias < ApplicationRecord
   end
 
   def pretty_acct
-    username, domain = acct.split('@', 2)
+    username, domain = acct.split('@')
     domain.nil? ? username : "#{username}@#{Addressable::IDNA.to_unicode(domain)}"
   end
 

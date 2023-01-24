@@ -16,11 +16,7 @@ module RoutingHelper
   def full_asset_url(source, **options)
     source = ActionController::Base.helpers.asset_url(source, **options) unless use_storage?
 
-    URI.join(asset_host, source).to_s
-  end
-
-  def asset_host
-    Rails.configuration.action_controller.asset_host || root_url
+    URI.join(root_url, source).to_s
   end
 
   def full_pack_url(source, **options)

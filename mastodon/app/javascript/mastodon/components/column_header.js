@@ -17,7 +17,6 @@ class ColumnHeader extends React.PureComponent {
 
   static contextTypes = {
     router: PropTypes.object,
-    identity: PropTypes.object,
   };
 
   static propTypes = {
@@ -57,7 +56,7 @@ class ColumnHeader extends React.PureComponent {
   }
 
   handleTitleClick = () => {
-    this.props.onClick?.();
+    this.props.onClick();
   }
 
   handleMoveLeft = () => {
@@ -146,12 +145,13 @@ class ColumnHeader extends React.PureComponent {
       collapsedContent.push(moveButtons);
     }
 
-    if (this.context.identity.signedIn && (children || (multiColumn && this.props.onPin))) {
+    if (children || (multiColumn && this.props.onPin)) {
       collapseButton = (
         <button
           className={collapsibleButtonClassName}
           title={formatMessage(collapsed ? messages.show : messages.hide)}
           aria-label={formatMessage(collapsed ? messages.show : messages.hide)}
+          aria-pressed={collapsed ? 'false' : 'true'}
           onClick={this.handleToggleClick}
         >
           <i className='icon-with-badge'>

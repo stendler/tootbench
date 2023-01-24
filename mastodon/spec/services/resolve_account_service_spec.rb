@@ -137,8 +137,8 @@ RSpec.describe ResolveAccountService, type: :service do
       stub_request(:get, 'https://evil.example.com/.well-known/webfinger?resource=acct:foo@evil.example.com').to_return(body: Oj.dump(webfinger2), headers: { 'Content-Type': 'application/jrd+json' })
     end
 
-    it 'does not return a new remote account' do
-      expect(subject.call('Foo@redirected.example.com')).to be_nil
+    it 'returns new remote account' do
+      expect { subject.call('Foo@redirected.example.com') }.to raise_error Webfinger::RedirectError
     end
   end
 

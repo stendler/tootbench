@@ -5,9 +5,7 @@ module Admin
     include Redisable
 
     def index
-      authorize :dashboard, :index?
-
-      @system_checks         = Admin::SystemCheck.perform(current_user)
+      @system_checks         = Admin::SystemCheck.perform
       @time_period           = (29.days.ago.to_date...Time.now.utc.to_date)
       @pending_users_count   = User.pending.count
       @pending_reports_count = Report.unresolved.count

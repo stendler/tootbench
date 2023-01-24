@@ -6,8 +6,7 @@ class Form::AccountBatch
   include AccountableConcern
   include Payloadable
 
-  attr_accessor :account_ids, :action, :current_account,
-                :select_all_matching, :query
+  attr_accessor :account_ids, :action, :current_account
 
   def save
     case action
@@ -61,11 +60,7 @@ class Form::AccountBatch
   end
 
   def accounts
-    if select_all_matching?
-      query
-    else
-      Account.where(id: account_ids)
-    end
+    Account.where(id: account_ids)
   end
 
   def approve!
@@ -106,7 +101,7 @@ class Form::AccountBatch
 
   def reject_account(account)
     authorize(account.user, :reject?)
-    log_action(:reject, account.user)
+    log_action(:reject, account.user, username: account.username)
     account.suspend!(origin: :local)
     AccountDeletionWorker.perform_async(account.id, { 'reserve_username' => false })
   end
@@ -122,9 +117,5 @@ class Form::AccountBatch
     authorize(account.user, :approve?)
     log_action(:approve, account.user)
     account.user.approve!
-  end
-
-  def select_all_matching?
-    select_all_matching == '1'
   end
 end

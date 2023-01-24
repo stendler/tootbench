@@ -7,7 +7,9 @@ class RedisConfiguration
       @pool = ConnectionPool.new(size: new_pool_size) { new.connection }
     end
 
-    delegate :with, to: :pool
+    def with
+      pool.with { |redis| yield redis }
+    end
 
     def pool
       @pool ||= establish_pool(pool_size)
@@ -15,7 +17,7 @@ class RedisConfiguration
 
     def pool_size
       if Sidekiq.server?
-        Sidekiq[:concurrency]
+        Sidekiq.options[:concurrency]
       else
         ENV['MAX_THREADS'] || 5
       end

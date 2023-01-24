@@ -16,6 +16,7 @@ export default class IconButton extends React.PureComponent {
     onKeyPress: PropTypes.func,
     size: PropTypes.number,
     active: PropTypes.bool,
+    pressed: PropTypes.bool,
     expanded: PropTypes.bool,
     style: PropTypes.object,
     activeStyle: PropTypes.object,
@@ -97,6 +98,7 @@ export default class IconButton extends React.PureComponent {
       icon,
       inverted,
       overlay,
+      pressed,
       tabIndex,
       title,
       counter,
@@ -129,7 +131,7 @@ export default class IconButton extends React.PureComponent {
       </React.Fragment>
     );
 
-    if (href && !this.prop) {
+    if (href) {
       contents = (
         <a href={href} target='_blank' rel='noopener noreferrer'>
           {contents}
@@ -139,8 +141,8 @@ export default class IconButton extends React.PureComponent {
 
     return (
       <button
-        type='button'
         aria-label={title}
+        aria-pressed={pressed}
         aria-expanded={expanded}
         title={title}
         className={classes}

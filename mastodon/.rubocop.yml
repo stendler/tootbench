@@ -67,7 +67,7 @@ Lint/UselessAccessModifier:
     - class_methods
 
 Metrics/AbcSize:
-  Max: 115
+  Max: 100
   Exclude:
     - 'lib/mastodon/*_cli.rb'
 
@@ -84,7 +84,7 @@ Metrics/BlockNesting:
 
 Metrics/ClassLength:
   CountComments: false
-  Max: 500
+  Max: 400
   Exclude:
     - 'lib/mastodon/*_cli.rb'
 
@@ -280,9 +280,6 @@ Style/RedundantRegexpEscape:
 
 Style/RedundantReturn:
   Enabled: true
-
-Style/RedundantBegin:
-  Enabled: false
 
 Style/RegexpLiteral:
   Enabled: false

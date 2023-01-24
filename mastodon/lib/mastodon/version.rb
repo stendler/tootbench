@@ -5,15 +5,15 @@ module Mastodon
     module_function
 
     def major
-      4
+      3
     end
 
     def minor
-      0
+      5
     end
 
     def patch
-      2
+      5
     end
 
     def flags

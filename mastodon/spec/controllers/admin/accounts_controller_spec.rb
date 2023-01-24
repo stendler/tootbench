@@ -6,7 +6,7 @@ RSpec.describe Admin::AccountsController, type: :controller do
   before { sign_in current_user, scope: :user }
 
   describe 'GET #index' do
-    let(:current_user) { Fabricate(:user, role: UserRole.find_by(name: 'Admin')) }
+    let(:current_user) { Fabricate(:user, admin: true) }
 
     around do |example|
       default_per_page = Account.default_per_page
@@ -60,7 +60,7 @@ RSpec.describe Admin::AccountsController, type: :controller do
   end
 
   describe 'GET #show' do
-    let(:current_user) { Fabricate(:user, role: UserRole.find_by(name: 'Admin')) }
+    let(:current_user) { Fabricate(:user, admin: true) }
     let(:account) { Fabricate(:account) }
 
     it 'returns http success' do
@@ -72,15 +72,15 @@ RSpec.describe Admin::AccountsController, type: :controller do
   describe 'POST #memorialize' do
     subject { post :memorialize, params: { id: account.id } }
 
-    let(:current_user) { Fabricate(:user, role: current_role) }
+    let(:current_user) { Fabricate(:user, admin: current_user_admin) }
     let(:account) { user.account }
-    let(:user) { Fabricate(:user, role: target_role) }
+    let(:user) { Fabricate(:user, admin: target_user_admin) }
 
     context 'when user is admin' do
-      let(:current_role) { UserRole.find_by(name: 'Admin') }
+      let(:current_user_admin) { true }
 
       context 'when target user is admin' do
-        let(:target_role) { UserRole.find_by(name: 'Admin') }
+        let(:target_user_admin) { true }
 
         it 'fails to memorialize account' do
           is_expected.to have_http_status :forbidden
@@ -89,7 +89,7 @@ RSpec.describe Admin::AccountsController, type: :controller do
       end
 
       context 'when target user is not admin' do
-        let(:target_role) { UserRole.find_by(name: 'Moderator') }
+        let(:target_user_admin) { false }
 
         it 'succeeds in memorializing account' do
           is_expected.to redirect_to admin_account_path(account.id)
@@ -99,10 +99,10 @@ RSpec.describe Admin::AccountsController, type: :controller do
     end
 
     context 'when user is not admin' do
-      let(:current_role) { UserRole.find_by(name: 'Moderator') }
+      let(:current_user_admin) { false }
 
       context 'when target user is admin' do
-        let(:target_role) { UserRole.find_by(name: 'Admin') }
+        let(:target_user_admin) { true }
 
         it 'fails to memorialize account' do
           is_expected.to have_http_status :forbidden
@@ -111,7 +111,7 @@ RSpec.describe Admin::AccountsController, type: :controller do
       end
 
       context 'when target user is not admin' do
-        let(:target_role) { UserRole.find_by(name: 'Moderator') }
+        let(:target_user_admin) { false }
 
         it 'fails to memorialize account' do
           is_expected.to have_http_status :forbidden
@@ -124,12 +124,12 @@ RSpec.describe Admin::AccountsController, type: :controller do
   describe 'POST #enable' do
     subject { post :enable, params: { id: account.id } }
 
-    let(:current_user) { Fabricate(:user, role: role) }
+    let(:current_user) { Fabricate(:user, admin: admin) }
     let(:account) { user.account }
     let(:user) { Fabricate(:user, disabled: true) }
 
     context 'when user is admin' do
-      let(:role) { UserRole.find_by(name: 'Admin') }
+      let(:admin) { true }
 
       it 'succeeds in enabling account' do
         is_expected.to redirect_to admin_account_path(account.id)
@@ -138,7 +138,7 @@ RSpec.describe Admin::AccountsController, type: :controller do
     end
 
     context 'when user is not admin' do
-      let(:role) { UserRole.everyone }
+      let(:admin) { false }
 
       it 'fails to enable account' do
         is_expected.to have_http_status :forbidden
@@ -150,23 +150,19 @@ RSpec.describe Admin::AccountsController, type: :controller do
   describe 'POST #redownload' do
     subject { post :redownload, params: { id: account.id } }
 
-    let(:current_user) { Fabricate(:user, role: role) }
-    let(:account) { Fabricate(:account, domain: 'example.com') }
-
-    before do
-      allow_any_instance_of(ResolveAccountService).to receive(:call)
-    end
+    let(:current_user) { Fabricate(:user, admin: admin) }
+    let(:account) { Fabricate(:account) }
 
     context 'when user is admin' do
-      let(:role) { UserRole.find_by(name: 'Admin') }
+      let(:admin) { true }
 
-      it 'succeeds in redownloading' do
+      it 'succeeds in redownloadin' do
         is_expected.to redirect_to admin_account_path(account.id)
       end
     end
 
     context 'when user is not admin' do
-      let(:role) { UserRole.everyone }
+      let(:admin) { false }
 
       it 'fails to redownload' do
         is_expected.to have_http_status :forbidden
@@ -177,11 +173,11 @@ RSpec.describe Admin::AccountsController, type: :controller do
   describe 'POST #remove_avatar' do
     subject { post :remove_avatar, params: { id: account.id } }
 
-    let(:current_user) { Fabricate(:user, role: role) }
+    let(:current_user) { Fabricate(:user, admin: admin) }
     let(:account) { Fabricate(:account) }
 
     context 'when user is admin' do
-      let(:role) { UserRole.find_by(name: 'Admin') }
+      let(:admin) { true }
 
       it 'succeeds in removing avatar' do
         is_expected.to redirect_to admin_account_path(account.id)
@@ -189,7 +185,7 @@ RSpec.describe Admin::AccountsController, type: :controller do
     end
 
     context 'when user is not admin' do
-      let(:role) { UserRole.everyone }
+      let(:admin) { false }
 
       it 'fails to remove avatar' do
         is_expected.to have_http_status :forbidden
@@ -200,12 +196,12 @@ RSpec.describe Admin::AccountsController, type: :controller do
   describe 'POST #unblock_email' do
     subject { post :unblock_email, params: { id: account.id } }
 
-    let(:current_user) { Fabricate(:user, role: role) }
+    let(:current_user) { Fabricate(:user, admin: admin) }
     let(:account) { Fabricate(:account, suspended: true) }
     let!(:email_block) { Fabricate(:canonical_email_block, reference_account: account) }
 
     context 'when user is admin' do
-      let(:role) { UserRole.find_by(name: 'Admin') }
+      let(:admin) { true }
 
       it 'succeeds in removing email blocks' do
         expect { subject }.to change { CanonicalEmailBlock.where(reference_account: account).count }.from(1).to(0)
@@ -218,7 +214,7 @@ RSpec.describe Admin::AccountsController, type: :controller do
     end
 
     context 'when user is not admin' do
-      let(:role) { UserRole.everyone }
+      let(:admin) { false }
 
       it 'fails to remove avatar' do
         subject

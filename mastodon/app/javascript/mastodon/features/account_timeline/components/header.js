@@ -22,9 +22,6 @@ export default class Header extends ImmutablePureComponent {
     onUnblockDomain: PropTypes.func.isRequired,
     onEndorseToggle: PropTypes.func.isRequired,
     onAddToList: PropTypes.func.isRequired,
-    onChangeLanguages: PropTypes.func.isRequired,
-    onInteractionModal: PropTypes.func.isRequired,
-    onOpenAvatar: PropTypes.func.isRequired,
     hideTabs: PropTypes.bool,
     domain: PropTypes.string.isRequired,
     hidden: PropTypes.bool,
@@ -94,18 +91,6 @@ export default class Header extends ImmutablePureComponent {
     this.props.onEditAccountNote(this.props.account);
   }
 
-  handleChangeLanguages = () => {
-    this.props.onChangeLanguages(this.props.account);
-  }
-
-  handleInteractionModal = () => {
-    this.props.onInteractionModal(this.props.account);
-  }
-
-  handleOpenAvatar = () => {
-    this.props.onOpenAvatar(this.props.account);
-  }
-
   render () {
     const { account, hidden, hideTabs } = this.props;
 
@@ -132,9 +117,6 @@ export default class Header extends ImmutablePureComponent {
           onEndorseToggle={this.handleEndorseToggle}
           onAddToList={this.handleAddToList}
           onEditAccountNote={this.handleEditAccountNote}
-          onChangeLanguages={this.handleChangeLanguages}
-          onInteractionModal={this.handleInteractionModal}
-          onOpenAvatar={this.handleOpenAvatar}
           domain={this.props.domain}
           hidden={hidden}
         />
