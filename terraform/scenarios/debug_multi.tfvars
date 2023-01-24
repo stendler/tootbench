@@ -8,16 +8,16 @@ scenario = {
       users = 10
       posting_users = 10
       listening_users = 10
-    },
-    {
-      users = 10
-      posting_users = 10
-      listening_users = 10
-    },
-    {
+    }
+   ,{
       users = 10
       posting_users = 10
       listening_users = 10
     }
+#   ,{
+#      users = 10
+#      posting_users = 10
+#      listening_users = 10
+#    }
   ]
 }
