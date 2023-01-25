@@ -34,7 +34,8 @@ services:
 
 # run directly with `docker compose run db-migrate`
   db-migrate:
-    image: tootsuite/mastodon:v3.5.5
+    build: mastodon
+    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
     env_file: .env.production
     environment:
       - DISABLE_DATABASE_ENVIRONMENT_CHECK=1
@@ -50,7 +51,8 @@ services:
       - migrate
 
   precompile-assets:
-    image: tootsuite/mastodon:v3.5.5
+    build: mastodon
+    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
     env_file: .env.production
     command: bash -c "bundle exec rake assets:precompile"
     networks:
@@ -62,7 +64,8 @@ services:
       - migrate
 
   tootctl:
-    image: tootsuite/mastodon:v3.5.5
+    build: mastodon
+    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
     env_file: .env.production
     entrypoint: tootctl
     command: --help
@@ -119,7 +122,8 @@ services:
      - '127.0.0.1:9200:9200'
 
   web:
-    image: tootsuite/mastodon:v3.5.5
+    build: mastodon
+    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
     restart: always
     env_file: .env.production
 #    environment:
@@ -143,7 +147,8 @@ services:
       - /etc/ssl/certs:/etc/ssl/certs:ro
 
   streaming:
-    image: tootsuite/mastodon:v3.5.5
+    build: mastodon
+    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
     restart: always
     env_file: .env.production
 #    environment:
@@ -165,7 +170,8 @@ services:
       - /etc/ssl/certs:/etc/ssl/certs:ro
 
   sidekiq:
-    image: tootsuite/mastodon:v3.5.5
+    build: mastodon
+    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
     restart: always
     env_file: .env.production
 #    environment:

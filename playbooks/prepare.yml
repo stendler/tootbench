@@ -59,7 +59,44 @@
         src: cert/{{ inventory_hostname }}/key.pem
         local_follow: true
         dest: cert/{{ inventory_hostname }}/key.pem
-
+    - name: Configure git name to be able to apply patches
+      community.general.git_config:
+        scope: global
+        name: user.name
+        value: ansible
+    - name: Configure git email to be able to apply patches
+      community.general.git_config:
+        scope: global
+        name: user.email
+        value: ansible@client
+    - name: Checkout git repo
+      git:
+        repo: https://github.com/mastodon/mastodon.git
+        dest: mastodon
+        version: "{{ mastodon_version }}"
+        depth: 1
+    - name: Sync patches
+      synchronize:
+        mode: push
+        src: patches
+        dest: .
+    - name: Apply patches
+      command:
+        chdir: mastodon
+        cmd: git am ../patches/
+    - name: Install dockerignore
+      copy:
+        src: .dockerignore
+        local_follow: true
+        dest: .
+    - name: Build Mastodon image from patched git version {{ mastodon_version }}
+      command: docker compose --project-name mastodon build
+      environment:
+        MASTODON_VERSION: "{{ mastodon_version }}"
+    - name: Pull images
+      command: docker compose --project-name mastodon pull --quiet
+      environment:
+        MASTODON_VERSION: "{{ mastodon_version }}"
     - name: Pre-compile Mastodon assets
       command:
         cmd: docker compose --project-name mastodon run --rm precompile-assets
