@@ -18,8 +18,9 @@ for instance in $(cat terraform/hosts); do
   sed -i "/^Host $instance/ s/$/ $instance/" ~/.ssh/config
   sed -i "/^Host $instance/a\    User ansible" ~/.ssh/config
 
-  if [ ! -d cert/$instance ]; then
-    docker run --rm -v "$HOST_VOLUME_MOUNT/cert:/cert" -u $(id -u):$(id -g) minica --domains $instance
+  cert_hostname=$(grep -o "$instance.*" "playbooks/host_vars/$instance")
+  if [ ! -d "cert/$cert_hostname" ]; then
+    docker run --rm -v "$HOST_VOLUME_MOUNT/cert:/cert" -u $(id -u):$(id -g) minica --domains "$cert_hostname"
   fi
 
   # await ssh-server ready for connections (and let gcloud gather fingerprints for known_hosts)

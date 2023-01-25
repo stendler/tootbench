@@ -3,6 +3,11 @@
   hosts: instances
   become: yes
   tasks:
+    # Let docker containers resolve hostnames via dns https://stackoverflow.com/a/72088477
+    - name: Upgrade system packages
+      apt:
+        upgrade: yes
+        update_cache: yes
     # (continuos) vmstat --unit M --one-header --timestamp 5
     - name: Install vmstat service
       copy:
@@ -38,7 +43,7 @@
         value: 262144
     # (maybe?) netstat --continuous --tcp --udp
 
-- name: Setup and run Mastodon on the instances
+- name: Setup Mastodon on the instances
   hosts: instances
   tasks:
     - name: .env.production
@@ -46,19 +51,19 @@
         src: .env.production.jinja2
         dest: .env.production
     - name: Create cert directory
-      shell: "mkdir -p cert/{{ inventory_hostname }}/"
+      shell: "mkdir -p cert/{{ hostname }}/"
       args:
-        creates: cert/{{ inventory_hostname }}/
+        creates: cert/{{ hostname }}/
     - name: Install minica certificate
       copy:
-        src: cert/{{ inventory_hostname }}/cert.pem
+        src: cert/{{ hostname }}/cert.pem
         local_follow: true
-        dest: cert/{{ inventory_hostname }}/cert.pem
+        dest: cert/{{ hostname }}/cert.pem
     - name: Install minica private key
       copy:
-        src: cert/{{ inventory_hostname }}/key.pem
+        src: cert/{{ hostname }}/key.pem
         local_follow: true
-        dest: cert/{{ inventory_hostname }}/key.pem
+        dest: cert/{{ hostname }}/key.pem
 
     - name: Pull images
       command: docker compose --project-name mastodon pull --quiet
@@ -68,13 +73,13 @@
       command:
         cmd: docker compose --project-name mastodon run --rm precompile-assets
       environment:
-        hostname: "{{ inventory_hostname }}"
+        hostname: "{{ hostname }}"
         MASTODON_VERSION: "{{ mastodon_version }}"
     - name: Migrate Mastodon database
       command:
         cmd: docker compose --project-name mastodon run --rm db-migrate
       environment:
-        hostname: "{{ inventory_hostname }}"
+        hostname: "{{ hostname }}"
         MASTODON_VERSION: "{{ mastodon_version }}"
       args:
         creates: mastodon/postgres14
@@ -83,7 +88,7 @@
       command:
         cmd: docker compose --project-name mastodon run --rm tootctl search deploy
       environment:
-        hostname: "{{ inventory_hostname }}"
+        hostname: "{{ hostname }}"
         MASTODON_VERSION: "{{ mastodon_version }}"
     - name: Add util scripts
       copy:
@@ -98,7 +103,7 @@
         creates: admin.txt
     - name: Create Mastodon users
       command:
-        cmd: sh createUser.sh {{ hostvars[inventory_hostname].users }} user {{ inventory_hostname }}
+        cmd: sh createUser.sh {{ users }} user {{ hostname }}
       environment:
         MASTODON_VERSION: "{{ mastodon_version }}"
       args:

@@ -113,6 +113,7 @@ Cleanup:
 
 ## Future ToDos
 
-- metric services: awk only relevant lines
+- monitoring services: move all at once and specify a custom common target to start them
+- monitoring services: awk only relevant lines
 - user avatars (differing per user globally) --> load
 - add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?

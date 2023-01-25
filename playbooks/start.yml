@@ -36,7 +36,7 @@
         chdir: /home/ansible
         cmd: docker compose --project-name mastodon up --wait
       environment:
-        hostname: "{{ inventory_hostname }}"
+        hostname: "{{ hostname }}"
         MASTODON_VERSION: "{{ mastodon_version }}"
 
 - name: Start Benchmark

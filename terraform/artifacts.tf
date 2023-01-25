@@ -27,11 +27,12 @@ resource "local_file" "ansible_hosts" {
 resource "local_file" "host_vars" {
   count = length(google_compute_instance.instance)
   filename = format("../playbooks/host_vars/%s", google_compute_instance.instance[count.index].name)
-  content = format("%s\nIP: %s\nusers: %s\nlistening_users: %s\nposting_users: %s",
+  content = format("%s\nIP: %s\nusers: %s\nlistening_users: %s\nposting_users: %s\nhostname: %s\n",
     local.secrets[count.index],
     google_compute_instance.instance[count.index].network_interface.0.access_config.0.nat_ip,
     max(var.scenario.instances[count.index].listening_users, var.scenario.instances[count.index].posting_users),
     var.scenario.instances[count.index].listening_users,
-    var.scenario.instances[count.index].posting_users
+    var.scenario.instances[count.index].posting_users,
+    format("%s.%s.c.%s.internal", google_compute_instance.instance[count.index].name, google_compute_instance.instance[count.index].zone, var.project-name) # e.g. debug-0.europe-west1-b.c.cloud-service-benchmarking-22.internal
   )
 }

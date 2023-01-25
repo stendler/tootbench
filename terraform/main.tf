@@ -1,10 +1,15 @@
 provider "google" {
-  project = "cloud-service-benchmarking-22"
+  project = var.project-name
   region  = "europe-west1"
   zone    = "europe-west1-b" // belgium, low CO2
 }
 
 provider "cloudinit" {}
+
+variable "project-name" {
+  type = string
+  default = "cloud-service-benchmarking-22"
+}
 
 variable "ansible-ssh-key-file" {
   type = string
