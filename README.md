@@ -102,6 +102,13 @@ done
 - client vms for load generation instructed from a controller
   - single client vm for now, since its rate limited anyway
 
+Cleanup:
+- remove debug logging
+- remove elasticsearch again
+- update README: 
+  - make usage
+  - adjust tootbench for benchmark runs
+
 - slide: show a diagram/architecture
 
 ## Future ToDos

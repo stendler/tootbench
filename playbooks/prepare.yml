@@ -65,11 +65,13 @@
         cmd: docker compose --project-name mastodon run --rm precompile-assets
       environment:
         hostname: "{{ inventory_hostname }}"
+        MASTODON_VERSION: "{{ mastodon_version }}"
     - name: Migrate Mastodon database
       command:
         cmd: docker compose --project-name mastodon run --rm db-migrate
       environment:
         hostname: "{{ inventory_hostname }}"
+        MASTODON_VERSION: "{{ mastodon_version }}"
       args:
         creates: mastodon/postgres14
     - name: Create elasticsearch indeces
@@ -78,6 +80,7 @@
         cmd: docker compose --project-name mastodon run --rm tootctl search deploy
       environment:
         hostname: "{{ inventory_hostname }}"
+        MASTODON_VERSION: "{{ mastodon_version }}"
     - name: Add util scripts
       copy:
         src: scripts/
@@ -92,11 +95,15 @@
     - name: Create Mastodon users
       command:
         cmd: sh createUser.sh {{ hostvars[inventory_hostname].users }} user {{ inventory_hostname }}
+      environment:
+        MASTODON_VERSION: "{{ mastodon_version }}"
       args:
         creates: users.txt
     - name: Let local users follow each other
       command:
         cmd: sh followersAddLocal.sh users.txt
+      environment:
+        MASTODON_VERSION: "{{ mastodon_version }}"
     - name: Collect user credentials
       fetch:
         src: users.txt
@@ -109,6 +116,8 @@
       ignore_errors: true # todo remove - use for now since this fails..
       command:
         cmd: sh followersAdd.sh
+      environment:
+        MASTODON_VERSION: "{{ mastodon_version }}"
 
 - name: Setup clients
   hosts: clients

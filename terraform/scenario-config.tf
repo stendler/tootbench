@@ -4,6 +4,7 @@ variable "scenario" {
     name = string
     client_machine_type = string
     instance_machine_type = string
+    mastodon_version = string
     instances = list(object({
       users = number # todo obsolete by using max(posting_users, listening_users) instead
       posting_users = number # number of users that post
@@ -41,6 +42,7 @@ variable "scenario" {
     name = "single-instance-default"
     client_machine_type = "e2-micro"
     instance_machine_type = "e2-standard-2"
+    mastodon_version = "v4.0.2"
     instances = [
       {
         users = 10

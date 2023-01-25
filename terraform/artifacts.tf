@@ -15,11 +15,12 @@ locals {
 # no ips needed - that is handled by gcloud compute ssh-config
 resource "local_file" "ansible_hosts" {
   filename = "../hosts.ini"
-  content = format("[all]\n%s\n%s\n\n[clients]\n%s\n\n[instances]\n%s\n",
+  content = format("[all]\n%s\n%s\n\n[clients]\n%s\n\n[instances]\n%s\n\n[all:vars]\n%s\n",
     join("\n", formatlist("%s", [google_compute_instance.client.name])), # [all]
     join("\n", formatlist("%s", google_compute_instance.instance.*.name)), # [all]
     join("\n", formatlist("%s", [google_compute_instance.client.name])), # [clients]
     join("\n", formatlist("%s", google_compute_instance.instance.*.name)), # [instances]
+    format("mastodon_version=%s", var.scenario.mastodon_version) # [all:vars]
   )
 }
 

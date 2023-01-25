@@ -37,6 +37,7 @@
         cmd: docker compose --project-name mastodon up --wait
       environment:
         hostname: "{{ inventory_hostname }}"
+        MASTODON_VERSION: "{{ mastodon_version }}"
 
 - name: Start Benchmark
   hosts: clients
