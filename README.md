@@ -1,6 +1,20 @@
+## Requirements
+
+- docker (mandatory)
+- docker-compose-plugin
+
+Other requirements - alternatively provided in the gcloud-terraform image (see `make help`):
+
+- make
+- openssl
+- Apache Maven
+- Terraform
+- Ansible
+- gcloud SDK
+
 ## Usage
 
-### Setup (for local dev deployment)
+<details><summary>Setup (for local dev deployment)</summary>
 
 #### Create .env configuration files
 
@@ -41,6 +55,8 @@ docker compose -f mastodon/docker-compose.yml run --rm precompile-assets db-migr
 ```sh
 docker compose -f mastodon/docker-compose.yml up
 ```
+
+</details> 
 
 ### Setup for google cloud
 
