@@ -39,47 +39,6 @@ public class TootbenchApp {
     }
   }
 
-  public static void test() {
-    var host = "mstdn-single-instance";
-
-    var toot = new Tootbench();
-    var app = toot.register(host);
-
-    List<Shutdownable> toBeGracefullyShutdowned = new ArrayList<>();
-
-    var username = "user1@localhost";
-    var user1 = toot.loginUser(host, username, "2e6bbb94173971027c4207af64e061c6");
-    toBeGracefullyShutdowned.add(user1.feedStream());
-
-    var user2 = toot.loginUser(host, "user2@localhost", "91c989c55a3d5e3163d6495c264c78c2");
-
-    try {
-      var userSender = new Statuses(user1.clientSender());
-      log.info("start posting");
-      int post = 400;
-      for (int i = 0; i < post; i++) {
-        var status = userSender.postStatus("my cool status " + i, null, null, false, null).execute();
-        log.info("Posted status\t{}\t{}", status.getAccount().getAcct(), status.getCreatedAt());
-      }
-
-      Thread.sleep(100000L);
-    } catch (Mastodon4jRequestException e) {
-      log.error("Request error. Probably rate limit exceeded. Shutting down...");
-      toBeGracefullyShutdowned.forEach(Shutdownable::shutdown);
-      log.debug(e.getResponse().toString());
-    } catch (InterruptedException e) {
-      log.error("Sending interrupted.");
-    }
-
-    try {
-      var userSender = new Statuses(user2.clientSender());
-      var status = userSender.postStatus("my cool status xxx", null, null, false, null).execute();
-      log.info("Posted status\t{}\t{}", status.getAccount().getAcct(), status.getCreatedAt());
-    } catch (Mastodon4jRequestException e) {
-      log.error("user 2 cannot post either...");
-    }
-  }
-
   /**
    * todo Log users in and safe tokens and client id & secret to file
    */
@@ -120,7 +79,7 @@ public class TootbenchApp {
           tootbench.start();
           log.info("Started");
           try {
-            Thread.sleep(Duration.ofSeconds(10)); // todo make duration configurable
+            Thread.sleep(Duration.ofSeconds(10)); // todo make duration configurable - seems to not stop after main thread exit currently anyway
             log.info("Sleeping done");
           } catch (InterruptedException e) {
             log.info("Sleeping cancelled");
@@ -135,7 +94,8 @@ public class TootbenchApp {
       }
 
     } else {
-      test();
+      log.error("Missing command: --run or --login");
+      System.exit(1);
     }
 
   }

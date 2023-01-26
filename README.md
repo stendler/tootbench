@@ -103,7 +103,6 @@ make init
 - disable rate limits
 - move docker-compose.yaml from cloud-init to prepare
 - federate
-  - configure instances to federate with each other
   - multiple instances in scripts
     - subscribe/follow to users of other instances
     - https://debug-0/authorize_interaction?uri=https://debug-1/users/user10
