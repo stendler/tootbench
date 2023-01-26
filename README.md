@@ -1,3 +1,7 @@
+![tootbench logo](logo-text.png)
+
+(Image Attribution: adapted from [Midjourney](https://www.midjourney.com) [CC-BY-NC](https://creativecommons.org/licenses/by-nc/4.0/legalcode))
+
 ## Requirements
 
 - docker (mandatory)
