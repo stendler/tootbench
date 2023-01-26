@@ -42,7 +42,7 @@ test:
 build:
 	@./scripts/build.sh
 	sh -c "MASTODON_VERSION=${MASTODON_VERSION} docker compose --project-name mastodon build"
-	docker push -t git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION}
+	#docker push git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION}
 
 init:
 	@./scripts/init.sh 10
