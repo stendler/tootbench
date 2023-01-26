@@ -1,4 +1,5 @@
 0?=make scenario=<scenario>
+MASTODON_VERSION?=v3.5.5
 
 ifdef scenario
 	scenario_cmd="-var-file=scenarios/${scenario}.tfvars"
@@ -37,6 +38,11 @@ help:
 
 test:
 	@./scripts/test.sh
+
+build:
+	@./scripts/build.sh
+	sh -c "MASTODON_VERSION=${MASTODON_VERSION} docker compose --project-name mastodon build"
+	docker push -t git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION}
 
 init:
 	@./scripts/init.sh cloud-service-benchmarking-22 10

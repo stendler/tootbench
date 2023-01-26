@@ -77,8 +77,6 @@ for i in $(seq $max_instances); do
 done
 ```
 
-
-
 #### Deploy single instance
 
 ```sh
@@ -88,32 +86,34 @@ done
 ```
 
 ## TODO
+- split init in gcloud init & general project init
+- disable rate limits
+- move docker-compose.yaml from cloud-init to prepare
 - federate
   - configure instances to federate with each other
   - multiple instances in scripts
-    - subscribe to users of other instances
+    - subscribe/follow to users of other instances
+    - https://debug-0/authorize_interaction?uri=https://debug-1/users/user10
 - client
   - configurable how many users post and how many users listen
-  - wait endlessly until shutdown
-  - maybe: integration test with a mock server --> are the intervals really 1 sec each per thread? (should be visible in the logs as well though)
+  - wait endlessly until shutdown (seems to be the case now already(?))
+  - are the intervals really 1 sec each per thread? (should be visible in the logs as well though)
 - docker-compose: limit resources / set min reserved
 
-- use vm machine type without bursts: m3-medium (?) - e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4
+- use vm machine type without bursts: e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4
 - client vms for load generation instructed from a controller
   - single client vm for now, since its rate limited anyway
 
 Cleanup:
 - remove debug logging
-- remove elasticsearch again
+- 
 - update README: 
   - make usage
   - adjust tootbench for benchmark runs
 
-- slide: show a diagram/architecture
-
 ## Future ToDos
 
-- monitoring services: move all at once and specify a custom common target to start them
+- monitoring services: move all at once (folder) and specify a custom common target to start them
 - monitoring services: awk only relevant lines
 - user avatars (differing per user globally) --> load
 - add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
