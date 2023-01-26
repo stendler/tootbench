@@ -1,15 +1,7 @@
 #!/usr/bin/env sh
 
-if [ -z "$1" -o -z $GCLOUD_PROJECT ]; then
-  GCLOUD_PROJECT=cloud-service-benchmarking-22
-fi
-
-if [ -n "$1" ]; then
-  GCLOUD_PROJECT="$1"
-fi
-
-if seq "$2" 2>/dev/null 1>/dev/null; then
-  max_instances="$2"
+if seq "$1" 2>/dev/null 1>/dev/null; then
+  max_instances="$1"
 else
   max_instances=10
 fi
@@ -25,16 +17,9 @@ docker build -t minica minica/. # if not done already
 docker run --rm -v "$HOST_VOLUME_MOUNT/cert:/cert" minica --domains localhost # if not done already to generate the root cert
 openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/minica.der
 ./build.sh
-echo "secrets:" > playbooks/files/secrets.yaml
+echo "secrets:" > terraform/secrets.yaml
 # repeat as much as maximum parallel instances to be deployed
 for i in $(seq $max_instances); do
   echo "Generating instance secrets [$i/$max_instances]"
-  ./scripts/secrets.sh >> playbooks/vars/secrets.yaml
+  ./scripts/secrets.sh >> terraform/secrets.yaml
 done
-
-export $GCLOUD_PROJECT
-gcloud auth login
-gcloud config set project $GCLOUD_PROJECT
-gcloud config set compute/zone europe-west1-b
-gcloud auth application-default login
-gcloud auth application-default set-quota-project $GCLOUD_PROJECT

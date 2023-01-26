@@ -45,7 +45,7 @@ build:
 	docker push -t git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION}
 
 init:
-	@./scripts/init.sh cloud-service-benchmarking-22 10
+	@./scripts/init.sh 10
 
 setup:
 	terraform -chdir=terraform init ${scenario_cmd}

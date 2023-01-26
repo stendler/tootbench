@@ -56,6 +56,9 @@ docker run -i --rm --entrypoint /bin/bash -v "$(pwd)/terraform:/home/cloudsdk/te
 
 #### Init
 
+Some scripts make use of the gcloud cli (specifically `gcloud compute ssh-config`), which requires proper login and the
+project and zone set:
+
 ```sh
 export $GCLOUD_PROJECT=cloud-service-benchmarking-22
 gcloud auth login
@@ -63,18 +66,13 @@ gcloud config set project $GCLOUD_PROJECT
 gcloud config set compute/zone europe-west1-b
 gcloud auth application-default login
 gcloud auth application-default set-quota-project $GCLOUD_PROJECT
-ssh-keygen -f .ssh/id_ed25519 -t ed25519
-docker build -t minica minica/. # if not done already
-docker run --rm -v "$(pwd)/cert:/cert" minica --domains localhost # if not done already to generate the root cert
-openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/minica.der
-(cd client && mvn package) # build the app
-echo "secrets:" > playbooks/files/secrets.yaml
-# repeat as much as maximum parallel instances to be deployed
-max_instances=10
-for i in $(seq $max_instances); do
-  echo "Generating instance secrets [$i/$max_instances]"
-  ./scripts/secrets.sh >> playbooks/vars/secrets.yaml
-done
+```
+
+Generate an SSH key, a root certificate for self-signing, prepare it for bundling it with the client app, 
+build the client and generate secrets required for mastodon to be used configured with Terraform and used by Ansible:
+
+```sh
+make init
 ```
 
 #### Deploy single instance
@@ -86,7 +84,6 @@ done
 ```
 
 ## TODO
-- split init in gcloud init & general project init
 - disable rate limits
 - move docker-compose.yaml from cloud-init to prepare
 - federate
@@ -108,12 +105,12 @@ Cleanup:
 - remove debug logging
 - 
 - update README: 
-  - make usage
+  - make usage & requirements
   - adjust tootbench for benchmark runs
 
 ## Future ToDos
 
+- add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
 - monitoring services: move all at once (folder) and specify a custom common target to start them
 - monitoring services: awk only relevant lines
 - user avatars (differing per user globally) --> load
-- add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
