@@ -66,12 +66,12 @@ public class Tootbench {
   }
 
   public void createUsersFromFile(Path userFile) throws IOException {
-    String host = userFile.getName(userFile.getNameCount() - 2).toString(); // should be the folder name
+    String host = Files.lines(userFile).findFirst().orElseThrow().split(" ")[1].split("@")[1];
     hostAppClients.putIfAbsent(host, register(host)); // todo maybe create client per user --> move to loginUser
     log.debug("Logging in users of host {}", host);
     try (Stream<String> lines = Files.lines(userFile)) {
       lines.map(s -> s.split(" "))
-        .filter(strings -> strings.length >= 3)
+        .filter(strings -> strings.length >= 3) // make sure the format is appropriate
         .forEach(strings -> loginUser(host, strings[1], strings[2]));
     }
   }

@@ -79,7 +79,7 @@ public class TootbenchApp {
           tootbench.start();
           log.info("Started");
           try {
-            Thread.sleep(Duration.ofSeconds(10)); // todo make duration configurable - seems to not stop after main thread exit currently anyway
+            Thread.sleep(Duration.ofSeconds(10)); // seems to not stop after main thread exit currently anyway (probably the shutdown hook thread)
             log.info("Sleeping done");
           } catch (InterruptedException e) {
             log.info("Sleeping cancelled");
