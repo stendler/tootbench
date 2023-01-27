@@ -7,6 +7,7 @@ import com.sys1yagi.mastodon4j.api.Shutdownable;
 import com.sys1yagi.mastodon4j.api.entity.auth.AppRegistration;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import com.sys1yagi.mastodon4j.api.method.Apps;
+import com.sys1yagi.mastodon4j.api.method.Follows;
 import com.sys1yagi.mastodon4j.api.method.Statuses;
 import com.sys1yagi.mastodon4j.api.method.Streaming;
 import lombok.extern.slf4j.Slf4j;
@@ -143,7 +144,14 @@ public class Tootbench {
   }
 
   public record UserCreds(String username, AppRegistration client, String token) {}
-  public record User(Shutdownable feedStream, MastodonClient clientSender) {}
+  public record User(Shutdownable feedStream, MastodonClient clientSender) {
+
+    // either check how to send to own instance a follow request (probably best) see authorize_interaction
+    public void follow(String remoteUser) {
+      //Follows
+    }
+
+  }
   public record RegisteredApp(Apps appClient, AppRegistration registration) {}
 
 }
