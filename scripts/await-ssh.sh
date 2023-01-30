@@ -20,13 +20,13 @@ for instance in $(cat terraform/hosts); do
 
   cert_hostname=$(grep -o "$instance.*" "playbooks/host_vars/$instance")
   if [ ! -d "cert/$cert_hostname" ]; then
-    docker run --rm -v "$HOST_VOLUME_MOUNT/cert:/cert" -u $(id -u):$(id -g) minica --domains "$cert_hostname"
+    docker run --rm -v "$HOST_VOLUME_MOUNT/cert:/cert" -u "$(id -u)":"$(id -g)" minica --domains "$cert_hostname"
   fi
 
   # await ssh-server ready for connections (and let gcloud gather fingerprints for known_hosts)
   # https://stackoverflow.com/questions/54668239/how-to-wait-until-ssh-is-available
   echo "Trying to connect to $instance..."
-  until gcloud compute ssh ansible@$instance --ssh-key-file=.ssh/id_ed25519 --command="true" -- -o ConnectTimeout=2 2>/dev/null ; do
+  until gcloud compute ssh "ansible@$instance" --ssh-key-file=.ssh/id_ed25519 --command="true" -- -o ConnectTimeout=2 2>/dev/null ; do
     sleep 1
     echo "Trying to connect to $instance..."
   done

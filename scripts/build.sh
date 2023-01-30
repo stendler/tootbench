@@ -3,7 +3,7 @@
 # if running inside docker: to be able to mount a volume from the host
 if [ -z "$HOST_VOLUME_MOUNT" ]; then
   HOST_VOLUME_MOUNT="$(pwd)"
-  echo 1>2 "No HOST_VOLUME_MOUNT set. Assuming running on the host and the following directory is accessible by the docker daemon: $HOST_VOLUME_MOUNT"
+  echo 1>&2 "No HOST_VOLUME_MOUNT set. Assuming running on the host and the following directory is accessible by the docker daemon: $HOST_VOLUME_MOUNT"
 fi
 
 if [ -z "$MVN" ]; then

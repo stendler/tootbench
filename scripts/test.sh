@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-echo Scenario: $scenario
+echo Scenario: "$scenario"
