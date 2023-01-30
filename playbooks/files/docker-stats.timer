@@ -2,7 +2,7 @@
 Description=Continuous Docker stats monitoring
 
 [Timer]
-OnUnitInactiveSec=5
+OnUnitInactiveSec=2
 AccuracySec=1s
 Persistent=true
 

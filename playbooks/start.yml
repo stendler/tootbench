@@ -19,13 +19,13 @@
       systemd:
         name: mpstat.service
         state: started
-    - name: Start docker stats monitoring service
-      systemd:
-        name: docker-stats.service
-        state: started
     - name: Start docker stats monitoring service timer
       systemd:
         name: docker-stats.timer
+        state: started
+    - name: Start docker stats monitoring service
+      systemd:
+        name: docker-stats.service
         state: started
 
 - name: Start Mastodon
