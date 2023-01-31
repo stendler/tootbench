@@ -4,8 +4,8 @@
 
 if [ -f "$1" ]; then
   # header
-  echo "timestamp,host,process,runnable_processes,blocked_processes,swap,free,buff,cache,swapped_from_disk,swapped_to_disk,blocks_received,blocks_sent,interrupts,context_switche,user_time,kernel_time,idle,waiting,stolen" | gzip
-  zcat "$1" | grep -v "systemd" | sed -E 's/\s+/,/g' | tail -n +3 | gzip
+  echo "timestamp,timestamp_micro,host,process,runnable_processes,blocked_processes,swap,free,buff,cache,swapped_from_disk,swapped_to_disk,blocks_received,blocks_sent,interrupts,context_switche,user_time,kernel_time,idle,waiting,stolen" | gzip
+  zcat "$1" | grep -v "systemd" | sed -E 's/\./,/;s/\s+/,/g' | tail -n +3 | gzip
 else
   echo 1>&2 "vmstat log file not found"
   exit 1
