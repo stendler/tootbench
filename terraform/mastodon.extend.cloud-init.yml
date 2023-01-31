@@ -1,9 +1,6 @@
 ## template: jinja
 #cloud-config
 
-packages:
-  - sysstat
-
 write_files:
   - path: /home/ansible/docker-compose.yml
     encoding: base64

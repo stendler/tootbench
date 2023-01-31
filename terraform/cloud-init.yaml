@@ -78,6 +78,7 @@ packages:
   - docker-ce-cli
   - containerd.io
   - docker-compose-plugin
+  - sysstat
 
 ssh_pwauth: false
 

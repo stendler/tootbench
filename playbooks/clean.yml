@@ -1,5 +1,17 @@
 ---
 - name: Clean monitoring logs
+  hosts: all
+  tasks:
+    - name: Vacuum journal
+      become: yes
+      shell: "journalctl --rotate --vacuum-time=1s"
+    - name: Delete user credentials
+      file:
+        state: absent
+        path: users.txt
+
+
+- name: Clean instance files
   hosts: instances
   tasks:
     - name: Remove mastodon containers
@@ -16,17 +28,10 @@
       file:
         state: absent
         path: /home/ansible/mastodon/redis
-    - name: Vacuum journal
-      become: yes
-      shell: "journalctl --rotate --vacuum-time=1s"
-    - name: Delete user credentials
-      file:
-        state: absent
-        path: users.txt
     - name: Delete remote user credentials
       file:
-        state: absent
-        path: users
+       state: absent
+       path: users
     - name: Delete admin credentials
       file:
         state: absent

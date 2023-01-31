@@ -1,9 +1,8 @@
 ---
 - name: Install monitoring services
-  hosts: instances
+  hosts: all
   become: yes
   tasks:
-    # Let docker containers resolve hostnames via dns https://stackoverflow.com/a/72088477
     - name: Upgrade system packages
       apt:
         upgrade: yes

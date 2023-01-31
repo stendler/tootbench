@@ -13,7 +13,7 @@
         cachable: yes
 
 - name: Write monitoring logs
-  hosts: instances
+  hosts: all
   tasks:
     - name: Create log folder
       shell: "mkdir -p logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/"

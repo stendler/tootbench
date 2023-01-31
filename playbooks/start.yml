@@ -1,6 +1,6 @@
 ---
 - name: Start monitoring
-  hosts: instances
+  hosts: all
   become: yes
   tasks:
     - name: Start vmstat monitoring service

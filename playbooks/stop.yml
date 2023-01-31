@@ -1,6 +1,6 @@
 ---
 - name: Stopping monitoring
-  hosts: instances
+  hosts: all
   become: yes
   tasks:
     - name: Stopping vmstat monitoring service
