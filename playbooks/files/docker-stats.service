@@ -2,7 +2,7 @@
 Description=Docker stats monitoring
 
 [Service]
-Type=oneshot
-ExecStart=/bin/docker stats --no-stream
+Type=simple
+ExecStart=/bin/docker stats
 RemainAfterExit=no
 Restart=no
