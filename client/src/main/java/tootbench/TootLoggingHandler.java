@@ -20,32 +20,26 @@ public class TootLoggingHandler implements Handler {
   }
 
   @Override
-  public void onDelete(long l) {
-    log.trace("Delete? {}", l);
-  }
+  public void onDelete(long l) { }
 
   @Override
-  public void onNotification(@NotNull Notification notification) {
-    log.trace("Notification\t{}\t{}\t{}\t{}",
-      Optional.ofNullable(notification.getAccount()).map(Account::getDisplayName).orElse("null"),
-      notification.getCreatedAt(),
-      Optional.ofNullable(notification.getStatus()).map(Status::getAccount).map(Account::getAcct).orElse("null"),
-      Optional.ofNullable(notification.getStatus()).map(Status::getCreatedAt).orElse("null")
-    );
-  }
+  public void onNotification(@NotNull Notification notification) { }
 
   @Override
   public void onStatus(@NotNull Status status) {
-    log.trace("{} received Toot\tfrom {}\t{}",
-      username,
-      Optional.ofNullable(status.getAccount()).map(Account::getAcct).orElse("null"),
-      status.getCreatedAt()
+    // status,username (sender),receive timestamp, server timestamp, username (receiver)
+    log.trace("status,{},{},{},{}",
+      Optional.ofNullable(status.getAccount()).map(Account::getUserName).orElse("null"),
+      LocalDateTime.now(),
+      status.getCreatedAt(),
+      username
     );
   }
 
   public static void logPostResponse(LocalDateTime requestedOn, Status status) {
-    log.trace("{} tooted on {} and server created on {}",
-      Optional.ofNullable(status.getAccount()).map(Account::getAcct).orElse("null"),
+    // post,username (sender),sent timestamp, server timestamp
+    log.trace("post,{},{},{}",
+      Optional.ofNullable(status.getAccount()).map(Account::getUserName).orElse("null"),
       requestedOn,
       status.getCreatedAt());
   }
