@@ -2,8 +2,13 @@
 
 set -e
 
-find analysis/input/*/ -type f -name vmstat.log.gz -exec sh -c 'outputfile=$(echo "{}" | sed "s/input/processed/"); mkdir -p $(dirname $outputfile); ./analysis/preprocessing/vmstat.sh "{}" > $outputfile'  \;
-find analysis/input/*/ -type f -name iostat-cpu.log.gz -exec sh -c 'outputfile=$(echo "{}" | sed "s/input/processed/"); mkdir -p $(dirname $outputfile); ./analysis/preprocessing/iostat-cpu.sh "{}" > $outputfile'  \;
-find analysis/input/*/ -type f -name iostat-disk.log.gz -exec sh -c 'outputfile=$(echo "{}" | sed "s/input/processed/"); mkdir -p $(dirname $outputfile); ./analysis/preprocessing/iostat-disk.sh "{}" > $outputfile'  \;
-find analysis/input/*/ -type f -name mpstat.log.gz -exec sh -c 'outputfile=$(echo "{}" | sed "s/input/processed/"); mkdir -p $(dirname $outputfile); ./analysis/preprocessing/mpstat.sh "{}" > $outputfile'  \;
-find analysis/input/*/ -type f -name docker-stats.log.gz -exec sh -c 'outputfile=$(echo "{}" | sed "s/input/processed/"); mkdir -p $(dirname $outputfile); ./analysis/preprocessing/docker-stats.sh "{}" > $outputfile'  \;
+for stat in vmstat iostat-cpu iostat-disk mpstat docker-stats; do
+  for run in $(find playbooks/logs/ -mindepth 1 -maxdepth 1 -type d); do #  todo possibly change depth depending on naming (scenario name & rep)
+    # merge found files
+    cat $(find "$run" -type f -name $stat.log.gz) > "$run/$stat.log.merged.gz"
+    outputfile="$(echo "$run" | sed "s/playbooks/analysis/;s/logs/input/")/$stat.log.gz"
+    mkdir -p "$(dirname "$outputfile")"
+    # preprocess them
+    ./analysis/preprocessing/$stat.sh "$run/$stat.log.merged.gz" > "$outputfile"
+  done
+done
