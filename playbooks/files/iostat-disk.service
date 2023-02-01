@@ -3,6 +3,6 @@ Description=Disk monitoring with iostat
 
 [Service]
 Type=simple
-ExecStart=/bin/iostat -mdN sda 5
+ExecStart=/bin/iostat -mdN sda 1
 RemainAfterExit=no
 Restart=no

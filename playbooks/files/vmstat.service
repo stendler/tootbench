@@ -3,6 +3,6 @@ Description=System monitoring with vmstat
 
 [Service]
 Type=simple
-ExecStart=/bin/vmstat --unit M --one-header 5
+ExecStart=/bin/vmstat --unit M --one-header 1
 RemainAfterExit=no
 Restart=no

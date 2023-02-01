@@ -3,6 +3,6 @@ Description=CPU monitoring with iostat
 
 [Service]
 Type=simple
-ExecStart=/bin/iostat -c 5
+ExecStart=/bin/iostat -c 1
 RemainAfterExit=no
 Restart=no
