@@ -2,14 +2,13 @@
 - name: Clean monitoring logs
   hosts: all
   tasks:
-    - name: Vacuum journal
+    - name: Vacuum journal - clean monitoring logs
       become: yes
       shell: "journalctl --rotate --vacuum-time=1s"
-    - name: Delete user credentials
+    - name: Delete remote user credentials
       file:
         state: absent
-        path: users.txt
-
+        path: users/
 
 - name: Clean instance files
   hosts: instances
@@ -28,10 +27,10 @@
       file:
         state: absent
         path: /home/ansible/mastodon/redis
-    - name: Delete remote user credentials
+    - name: Delete local user credentials
       file:
-       state: absent
-       path: users
+        state: absent
+        path: users.txt
     - name: Delete admin credentials
       file:
         state: absent
@@ -44,10 +43,6 @@
       file:
         state: absent
         path: tootbench.log.gz
-    - name: Delete user credentials
-      file:
-        state: absent
-        path: users/
 
 - name: Clean local files
   hosts: localhost
@@ -56,4 +51,3 @@
       file:
         path: users/
         state: absent
-

@@ -6,7 +6,7 @@
   </appender>
   <timestamp key="timestamp" datePattern="yyyyMMdd-HHmmss"/>
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>tootbench.log.gz</file><!-- not really a gzip file - but expected to have that file ending in pre-processing later -->
+    <file>tootbench.log</file>
     <encoder>
       <pattern>%d{yyyy-MM-dd}T%d{HH:mm:ss.SSS},%msg%n</pattern>
     </encoder>

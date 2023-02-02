@@ -14,19 +14,30 @@
 
 - name: Write monitoring logs
   hosts: all
+  vars:
+    # set defaults but should be overwritten via --extra-vars
+    scenario: "no_scenario"
+    current_rep: "1"
   tasks:
+    - name: Cached timestamp
+      set_fact:
+        timestamp: "{{ hostvars['localhost']['timestamp'] }}"
+        cacheable: yes
+    - name: Determine output directory
+      set_fact:
+        outputdir: "logs/{{ timestamp }}/{{ scenario }}/{{ current_rep }}/{{ inventory_hostname }}/"
     - name: Create log folder
-      shell: "mkdir -p logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/"
+      shell: "mkdir -p {{ outputdir }}"
     - name: Write vmstat service monitoring log
-      shell: "journalctl -u vmstat -o short-unix | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/vmstat.log.gz"
+      shell: "journalctl -u vmstat -o short-unix | gzip > {{ outputdir }}/vmstat.log.gz"
     - name: Write iostat cpu service monitoring log
-      shell: "journalctl -u iostat-cpu -o short-unix | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/iostat-cpu.log.gz"
+      shell: "journalctl -u iostat-cpu -o short-unix | gzip > {{ outputdir }}/iostat-cpu.log.gz"
     - name: Write iostat disk service monitoring log
-      shell: "journalctl -u iostat-disk -o short-unix | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/iostat-disk.log.gz"
+      shell: "journalctl -u iostat-disk -o short-unix | gzip > {{ outputdir }}/iostat-disk.log.gz"
     - name: Write mpstat service monitoring log
-      shell: "journalctl -u mpstat -o short-unix | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/mpstat.log.gz"
+      shell: "journalctl -u mpstat -o short-unix | gzip > {{ outputdir }}/mpstat.log.gz"
     - name: Write docker stats service monitoring log
-      shell: "journalctl -u docker-stats -o short-unix | gzip > logs/{{ hostvars['localhost']['timestamp'] }}/{{ inventory_hostname }}/docker-stats.log.gz"
+      shell: "journalctl -u docker-stats -o short-unix | gzip > {{ outputdir }}/docker-stats.log.gz"
     - name: Collect logs
       synchronize:
         mode: pull
@@ -36,7 +47,10 @@
 - name: Collect Tootbench Benchmark log
   hosts: clients
   tasks:
+    - name: gzip log
+      shell: "gzip tootbench.log"
     - name: Collect tootbench client log
       fetch:
         src: tootbench.log.gz
-        dest: logs/{{ hostvars['localhost']['timestamp'] }}/
+        dest: "{{ outputdir }}/"
+        flat: true

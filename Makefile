@@ -1,8 +1,15 @@
 0?=make scenario=<scenario>
 MASTODON_VERSION?=v3.5.5
+CURRENT_REP?=1
 
+EXTRA_VARS=current_rep=${CURRENT_REP}
 ifdef scenario
+	EXTRA_VARS:=${EXTRA_VARS} scenario=${scenario}
 	scenario_cmd="-var-file=scenarios/${scenario}.tfvars"
+endif
+
+ifdef timestamp
+	EXTRA_VARS:=${EXTRA_VARS} timestamp=${timestamp}
 endif
 
 help:
@@ -71,7 +78,7 @@ stop:
 	ansible-playbook --inventory hosts.ini playbooks/stop.yml
 
 collect:
-	ansible-playbook --inventory hosts.ini playbooks/collect.yml
+	ansible-playbook --inventory hosts.ini playbooks/collect.yml --extra-vars "${EXTRA_VARS}"
 
 clean:
 	ansible-playbook --inventory hosts.ini playbooks/clean.yml
