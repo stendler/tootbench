@@ -1,4 +1,7 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+
+set -e
+set -o pipefail
 
 if [ "init" == "$1" ]; then
   shift
@@ -6,14 +9,81 @@ if [ "init" == "$1" ]; then
   exit "$?"
 fi
 
-scenario="$1"
-scenario_cmd=""
-for s in $(./scripts/scenarios.sh); do
-  if [ "$s" == "$scenario" ]; then
-    scenario_cmd="-var-file=scenarios/$s.tfvars"
-    shift
-    break
-  fi
+timestamp=$(date -u +%Y-%m-%dT%H:%M:%S) # set a timestamp to be used for all runs
+reps=5 # number of repetitions for all scenarios
+runtime=600 # total runtime for each scenario in seconds
+
+OPTS=$(getopt --options hn:t:c: --longoptions help,repeat:,runtime:,comment: -- "$@")
+eval set -- "$OPTS"
+while true; do
+  case "$1" in
+      -h|--help)
+      echo "Usage: $0 [--repeat <number>] [--runtime <seconds>] <scenarios...>"
+      echo "   or: $0 init"
+      echo
+      echo "Description:"
+      echo "Run a full Mastodon federation benchmark for each of the given scenarios."
+      echo
+      echo "Available scenarios:"
+      ./scripts/scenarios.sh
+      echo
+      echo "Requirements:"
+      printf "\tDocker:     " && (docker version >/dev/null 2>/dev/null && printf "✅ " || printf "❌ " && echo " (mandatory)")
+      printf "\tOpenSSL:    " && (openssl version >/dev/null 2>/dev/null && echo "✅ " || echo "❌  (maybe use the docker image in ./gcloud-terraform/ instead - see below)")
+      printf "\tTerraform:  " && (terraform -version >/dev/null 2>/dev/null && echo "✅ " || echo "❌  (maybe use the docker image in ./gcloud-terraform/ instead - see below)")
+      printf "\tMaven:      " && (mvn --version >/dev/null 2>/dev/null && echo "✅ " || echo "⚠  (may use a docker container instead)")
+      printf "\tAnsible:    " && (ansible-playbook --version >/dev/null 2>/dev/null && echo "✅ " || echo "❌  (maybe use the docker image in ./gcloud-terraform/ instead - see below)")
+      printf "\tgcloud SDK: " && (gcloud --version >/dev/null 2>/dev/null && echo "✅ " || echo "❌  (maybe use the docker image in ./gcloud-terraform/ instead - see below)")
+      printf "\t------------\n"
+      printf "\tFor analysis:\n"
+      printf "\tPython      " && (python --version >/dev/null 2>/dev/null && echo "✅ " || echo "❌ ")
+      printf "\tPoetry      " && (poetry --version >/dev/null 2>/dev/null && echo "✅ " || echo "❌ ")
+      echo
+      printf "Alternatively, use the docker image in ./gcloud-terraform/ instead:\n\tdocker build -t gcloud-terraform:412 gcloud-terraform\n"
+      printf '\tdocker run --entrypoint /bin/bash -a \\\n\t   -v "$(PWD):/home/cloudsdk/project" \\\n\t   -v gcloud-config-personal:/home/cloudsdk/.config -v gcloud-config-root:/root/.config \\\n\t   -v /var/run/docker.sock:/var/run/docker.sock --name gcloud-terraform -u 1000:972 -w /home/cloudsdk/project \\\n\t   --env HOST_VOLUME_MOUNT=$(PWD) \\\n\t   gcloud-terraform:412\n'
+      echo
+      exit 0 ;;
+      -n|--repeat) reps="$2"; shift 2 ;;
+      -t|--runtime) runtime="$2"; shift 2 ;;
+      -c|--comment) timestamp+="_${2}"; shift 2; ;;
+      --) shift; break ;;
+  esac
 done
 
-make scenario_cmd="$scenario_cmd" 0="$0 <scenario>" "$@"
+if [ -z "$*" ]; then
+  echo 1>&2 "No scenario given. Use one or more of the following available scenarios:"
+  echo 1>&2
+  ./scripts/scenarios.sh 1>&2
+  exit 1
+fi
+
+cat banner.txt
+
+echo "Timestamp: $timestamp"
+echo "Repeats: $reps"
+echo "Runtime: $runtime"
+echo "Scenarios: $@"
+echo
+
+# todo: persists tootbench config in output folder & each scenario config
+
+for s in $(./scripts/scenarios.sh); do
+  case "$@" in *"$s"*)
+    for current_rep in $(seq $reps); do
+      scenario_cmd="-var-file=scenarios/$s.tfvars"
+      terraform -chdir=terraform apply "${scenario_cmd}" -auto-approve
+      ./scripts/await-ssh.sh
+
+      # do run the benchmark, wait, stop collect
+      make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" prepare start wait stop collect clean
+    done
+    shift ;;
+  esac
+done
+
+terraform -chdir=terraform destroy -auto-approve
+
+curl -H "Tags: megaphone" -H "Title: Tootbench", -d, "$timestamp done." "https://ntfy.sh/cloud-service-benchmarking-22"
+
+./analysis/preprocess.sh "playbooks/logs/$timestamp"
+# todo run python script?
