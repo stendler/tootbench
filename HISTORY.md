@@ -142,3 +142,10 @@ gcloud builds submit --tag europe-west1-docker.pkg.dev/cloud-service-benchmarkin
 ```
 
 AAAND disabled again. The image is available on the docker hub. --> Creating a docker-compose.yml
+
+
+## benchmark runs
+
+```shell
+time ./tootbench -n 5 --runtime 1800 --comment 30min_5reps_remote_follow ramessesIII ramessesII setiII setiI ramessesI
+```
