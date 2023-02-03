@@ -90,8 +90,8 @@
       args:
         creates: admin.txt
     - name: Create Mastodon users
-      command:
-        cmd: sh createUser.sh {{ users }} user {{ hostname }}
+      shell:
+        cmd: "docker compose --project-name mastodon run --rm --name {{ hostname }} -v $(pwd)/createUser.sh:/createUser.sh --entrypoint=/createUser.sh tootctl {{ users }} user {{ hostname }} > users.txt"
       environment:
         MASTODON_VERSION: "{{ mastodon_version }}"
       args:
