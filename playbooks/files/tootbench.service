@@ -8,4 +8,4 @@ User=ansible
 WorkingDirectory=/home/ansible
 RemainAfterExit=no
 Restart=no
-ExecStopPost=/bin/curl --header "Title: Tootbench stopped" --data "$(/bin/hostname) - $(/bin/date)" 'https://ntfy.sh/cloud-service-benchmarking-22'
+ExecStopPost=/bin/sh -c '/bin/curl --header "Tags: stop_sign" --header "Title: Tootbench stopped" --data "$(/bin/hostname) - $(/bin/date)" https://ntfy.sh/cloud-service-benchmarking-22'
