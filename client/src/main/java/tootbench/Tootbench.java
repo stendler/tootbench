@@ -2,14 +2,14 @@ package tootbench;
 
 import com.google.gson.Gson;
 import com.sys1yagi.mastodon4j.MastodonClient;
+import com.sys1yagi.mastodon4j.MastodonRequest;
+import com.sys1yagi.mastodon4j.Parameter;
 import com.sys1yagi.mastodon4j.api.Scope;
 import com.sys1yagi.mastodon4j.api.Shutdownable;
+import com.sys1yagi.mastodon4j.api.entity.Account;
 import com.sys1yagi.mastodon4j.api.entity.auth.AppRegistration;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
-import com.sys1yagi.mastodon4j.api.method.Apps;
-import com.sys1yagi.mastodon4j.api.method.Follows;
-import com.sys1yagi.mastodon4j.api.method.Statuses;
-import com.sys1yagi.mastodon4j.api.method.Streaming;
+import com.sys1yagi.mastodon4j.api.method.*;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 
@@ -99,7 +99,7 @@ public class Tootbench {
       var userSender = new MastodonClient.Builder(host, new OkHttpClient.Builder(), new Gson())
         .accessToken(token.getAccessToken()).build();
 
-      var user = new User(shutdownable, userSender);
+      var user = new User(shutdownable, userSender, username); // todo email may not be equal to user@host in the future (to speed up user creation)
       users.add(user);
       return user;
     } catch (Mastodon4jRequestException e) {
@@ -108,6 +108,14 @@ public class Tootbench {
     } catch (NullPointerException e) {
       log.error("No app registered yet for host {}", host);
       throw new RuntimeException(e);
+    }
+  }
+
+  void makeEachUserFollowEachOther() {
+    for (User client : users) {
+      for (User followed : users) {
+        client.follow(followed.username());
+      }
     }
   }
 
@@ -144,11 +152,39 @@ public class Tootbench {
   }
 
   public record UserCreds(String username, AppRegistration client, String token) {}
-  public record User(Shutdownable feedStream, MastodonClient clientSender) {
+  public record User(Shutdownable feedStream, MastodonClient clientSender, String username) {
 
-    // either check how to send to own instance a follow request (probably best) see authorize_interaction
     public void follow(String remoteUser) {
-      //Follows
+      if (username.equals(remoteUser)) {
+        return;
+      }
+
+      try {
+        // search for remote username to let the server webfinger and then retrieve the local id
+        // https GET https://debug-0.europe-west1-b.c.cloud-service-benchmarking-22.internal/api/v1/accounts/search "q==user7@debug-1.europe-west1-b.c.cloud-service-benchmarking-22.internal" "resolve==true" "Authorization:Bearer 13FnXRtu9pHyxfBWRAXvm78IuC_44SnvY5J5ARXUjvY"
+        log.debug("Searching for account {}", remoteUser);
+        long id = new MastodonRequest<List<Account>>(() -> clientSender.get("accounts/search",
+          new Parameter()
+            .append("q", remoteUser)
+            .append("resolve", true)), // trigger webfinger if user is unknown on home instance
+          s -> clientSender.getSerializer().fromJson(s, Account.class)
+        ).execute().get(0).getId();
+        // follow
+        // https POST https://debug-0.europe-west1-b.c.cloud-service-benchmarking-22.internal/api/v1/accounts/109796052517514405/follow "Authorization:Bearer 13FnXRtu9pHyxfBWRAXvm78IuC_44SnvY5J5ARXUjvY"
+        log.debug("User {} tries to follow {} {}", username, id, remoteUser);
+        new Accounts(clientSender).postFollow(id).execute();
+      } catch (Mastodon4jRequestException e) {
+        if (e.getResponse() != null) {
+          log.error(" {} - {} ", e.getResponse().code(), e.getResponse().message());
+          log.error("Ratelimit {} / {}. Reset in {}",
+            e.getResponse().header("X-RateLimit-Remaining"),
+            e.getResponse().header("X-RateLimit-Limit"),
+            e.getResponse().header("X-RateLimit-Reset")
+          );
+          e.getResponse().close();
+        }
+        throw new RuntimeException(e);
+      }
     }
 
   }

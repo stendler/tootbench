@@ -39,9 +39,6 @@ public class TootbenchApp {
     }
   }
 
-  /**
-   * todo Log users in and safe tokens and client id & secret to file
-   */
   public static void login(Tootbench client) {
     // find files/Path[s] to createUsers from
     var dir = new File("users");
@@ -75,10 +72,13 @@ public class TootbenchApp {
       var tootbench = new Tootbench();
       switch (args[0]) {
         case "--run" -> {
-          login(tootbench);
-          tootbench.start();
-          log.info("Started");
           try {
+            login(tootbench);
+            Thread.sleep(Duration.ofSeconds(60));
+            tootbench.makeEachUserFollowEachOther();
+            Thread.sleep(Duration.ofSeconds(60));
+            tootbench.start();
+            log.info("Started");
             Thread.sleep(Duration.ofSeconds(10)); // seems to not stop after main thread exit currently anyway (probably the shutdown hook thread)
             log.info("Sleeping done");
           } catch (InterruptedException e) {

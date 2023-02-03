@@ -96,11 +96,6 @@
         MASTODON_VERSION: "{{ mastodon_version }}"
       args:
         creates: users.txt
-    - name: Let local users follow each other
-      command:
-        cmd: sh followersAddLocal.sh users.txt
-      environment:
-        MASTODON_VERSION: "{{ mastodon_version }}"
     - name: Collect user credentials
       fetch:
         src: users.txt
@@ -109,12 +104,6 @@
       copy:
         src: users
         dest: ./
-    - name: Let remote users follow each other
-      ignore_errors: true # todo remove - use for now since this fails..
-      command:
-        cmd: sh followersAdd.sh
-      environment:
-        MASTODON_VERSION: "{{ mastodon_version }}"
 
 - name: Setup clients
   hosts: clients
