@@ -31,6 +31,9 @@
 - name: Start Mastodon
   hosts: instances
   tasks:
+    - name: Wait to collect idle system metrics
+      pause:
+        minutes: "1"
     - name: Start mastodon containers
       command:
         chdir: /home/ansible
@@ -38,6 +41,9 @@
       environment:
         hostname: "{{ hostname }}"
         MASTODON_VERSION: "{{ mastodon_version }}"
+    - name: Wait to collect container startup metrics
+      pause:
+        minutes: "1"
 
 - name: Start Benchmark
   hosts: clients

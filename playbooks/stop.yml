@@ -1,4 +1,16 @@
 ---
+- name: Stopping Benchmark
+  hosts: clients
+  become: yes
+  tasks:
+    - name: Stopping tootbench client
+      systemd:
+        name: tootbench.service
+        state: stopped
+    - name: Wait to collect benchmark aftermath metrics
+      pause:
+        minutes: "1"
+
 - name: Stopping monitoring
   hosts: all
   become: yes
@@ -38,11 +50,3 @@
       environment:
         hostname: "{{ inventory_hostname }}"
 
-- name: Stopping Benchmark
-  hosts: clients
-  become: yes
-  tasks:
-    - name: Stopping tootbench client
-      systemd:
-        name: tootbench.service
-        state: stopped
