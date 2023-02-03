@@ -27,7 +27,7 @@ resource "google_compute_instance" "instance" {
   machine_type = var.scenario.instance_machine_type
   name         = format("%s-%d", var.scenario.name, count.index)
   tags         = ["ssh", "internal"
-    #,"debug-extern"
+    , var.scenario.debug ? "debug-extern" : "prod"
   ]
   allow_stopping_for_update = true
 
