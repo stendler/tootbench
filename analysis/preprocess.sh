@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
+#
+# Prefix scenario name and run repetition number to each csv row, then merge all into one file for each monitored stat
+#
 
 set -e
 set -o pipefail
 
-# todo first find maybe not needed -> parameter and called with the main tootbench script
-for timestamp in $(find playbooks/logs/ -mindepth 1 -maxdepth 1 -type d); do
-  echo 1>&2 "preprocessing ... in $timestamp"
+folders="$*"
+if [ -z "$folders" ]; then
+  folders=$(find playbooks/logs/ -mindepth 1 -maxdepth 1 -type d)
+fi
+
+for timestamp in $folders; do
+  echo 1>&2 "preprocessing in $timestamp"
   for stat in vmstat iostat-cpu iostat-disk mpstat docker-stats tootbench; do
-    printf 1>&2 "preprocessing ....... $stat    "
+    printf 1>&2 "preprocessing ... $stat "
     for scenario in $(find "$timestamp" -mindepth 1 -maxdepth 1 -type d); do
       printf 1>&2 "\t%s " "$(basename "$scenario")"
       for run in $(find "$scenario" -mindepth 1 -maxdepth 1 -type d); do
