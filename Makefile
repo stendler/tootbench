@@ -1,6 +1,7 @@
 0?=make scenario=<scenario>
 MASTODON_VERSION?=v3.5.5
 CURRENT_REP?=1
+runtime?=600
 
 EXTRA_VARS=current_rep=${CURRENT_REP}
 ifdef scenario
@@ -55,7 +56,7 @@ init:
 	@./scripts/init.sh 10
 
 setup:
-	terraform -chdir=terraform init ${scenario_cmd}
+	terraform -chdir=terraform init ${scenario_cmd} # just to make sure in case something changed
 	terraform -chdir=terraform apply ${scenario_cmd}
 	./scripts/await-ssh.sh
 
@@ -73,6 +74,9 @@ prepare:
 
 start:
 	ansible-playbook --inventory hosts.ini playbooks/start.yml
+
+wait:
+	ansible-playbook --inventory hosts.ini playbooks/wait.yml --extra-vars "duration=${runtime}"
 
 stop:
 	ansible-playbook --inventory hosts.ini playbooks/stop.yml

@@ -1,0 +1,9 @@
+---
+- name: Run benchmark
+  hosts: localhost
+  vars:
+    duration: 600
+  tasks:
+    - name: Wait for benchmark duration
+      pause:
+        seconds: "{{ duration }}"
