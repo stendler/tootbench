@@ -75,7 +75,7 @@ for s in $(./scripts/scenarios.sh); do
       ./scripts/await-ssh.sh
 
       # do run the benchmark, wait, stop collect
-      make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" prepare start wait stop collect clean
+      make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" prepare start wait stop collect clean
     done
     shift ;;
   esac
@@ -83,7 +83,7 @@ done
 
 terraform -chdir=terraform destroy -auto-approve
 
-curl -H "Tags: megaphone" -H "Title: Tootbench", -d, "$timestamp done." "https://ntfy.sh/cloud-service-benchmarking-22"
+curl -H "Tags: white_check_mark" -H "Title: Tootbench", -d, "$timestamp done." "https://ntfy.sh/cloud-service-benchmarking-22"
 
 ./analysis/preprocess.sh "playbooks/logs/$timestamp"
 # todo run python script?
