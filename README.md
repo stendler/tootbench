@@ -104,12 +104,13 @@ make init
 ```
 
 ## TODO
-- disable rate limits
+- scenarios:
+  - 1x30, 2x15, 3x10
+  - 1x10, 2x10, 3x10
+  - ~~1x15, 1x15+1x30, 1x10+1x15+1x30~~
+- client: parallelize logins (and also follows)
+- increase number of threads of the threadpool?
 - move docker-compose.yaml from cloud-init to prepare
-- federate
-  - multiple instances in scripts
-    - subscribe/follow to users of other instances
-    - https://debug-0/authorize_interaction?uri=https://debug-1/users/user10
 - client
   - configurable how many users post and how many users listen
   - wait endlessly until shutdown (seems to be the case now already(?))
