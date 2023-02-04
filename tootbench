@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-set -o pipefail
-
 if [ "init" == "$1" ]; then
   shift
   ./scripts/init.sh $@
@@ -59,11 +56,59 @@ fi
 
 cat banner.txt
 
-echo "Timestamp: $timestamp"
+echo "Timestamp/Name: $timestamp"
 echo "Repeats: $reps"
 echo "Runtime: $runtime"
 echo "Scenarios: $*"
 echo
+read -n 1 -p "Run tootbench with this configuration? [Y/n] " execute
+case "$execute" in
+  n|N)
+    echo 1>&2
+    echo 1>&2 "Cancelled by user."
+    exit 2
+  ;;
+  *) echo 1>&2 && echo 1>&2 "Proceeding..." ;;
+esac
+
+function run() {
+  if scenario_cmd="-var-file=scenarios/$s.tfvars" \
+    && terraform -chdir=terraform apply "${scenario_cmd}" -auto-approve \
+    && ./scripts/await-ssh.sh \
+    && make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" prepare start wait stop \
+    ; then
+      return 0
+  else
+    echo 1>&2 "failed, wait a bit and then try cleaning up"
+    sleep 10
+    # stop & cleanup
+    make stop clean
+    return 1
+  fi
+}
+
+function repeat_until_succeed() {
+  if [ -z "$1" ]; then
+    return 1
+  fi
+  for i in $(seq 5); do
+    if $1; then
+      return 0
+    fi
+    # try failed; retrying
+    echo 1>&2 "retrying after 10s"
+    curl -H "Tags: rotating_light" -H "Title: Tootbench retrying $i/5" -d "$s - $current_rep failed. Retrying.. $i/5" "https://ntfy.sh/cloud-service-benchmarking-22"
+    sleep 10
+  done
+  failure
+}
+
+function failure() {
+  terraform -chdir=terraform destroy -auto-approve
+  curl -H "Tags: x" -H "Title: Tootbench" -d "$timestamp failed." "https://ntfy.sh/cloud-service-benchmarking-22"
+  exit 1
+}
+
 
 # todo: persists tootbench config in output folder & each scenario config
 
@@ -72,12 +117,9 @@ for s in $(./scripts/scenarios.sh); do
     echo "$s == $available_s ?"
     if [ "$s" == "$available_s" ]; then
       for current_rep in $(seq "$reps"); do
-        scenario_cmd="-var-file=scenarios/$s.tfvars"
-        terraform -chdir=terraform apply "${scenario_cmd}" -auto-approve
-        ./scripts/await-ssh.sh
-
-        # do run the benchmark, wait, stop collect
-        make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" prepare start wait stop collect clean
+        repeat_until_succeed run
+        repeat_until_succeed 'make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" collect'
+        repeat_until_succeed 'make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" clean'
       done
     fi
   done
@@ -88,4 +130,4 @@ terraform -chdir=terraform destroy -auto-approve
 curl -H "Tags: white_check_mark" -H "Title: Tootbench" -d "$timestamp done." "https://ntfy.sh/cloud-service-benchmarking-22"
 
 ./analysis/preprocess.sh "playbooks/logs/$timestamp"
-# todo run python script?
+# todo run make analysis?
