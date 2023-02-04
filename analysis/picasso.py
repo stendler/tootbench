@@ -28,9 +28,18 @@ if __name__ == "__main__":
 
     if len(folders) == 0:
         # no arg given - do for all todo let choose and not just all
+        print("Available folders to analyze:")
+        i = 0
+        choices = []
         for path in Path("analysis/input").iterdir():
             if path.is_dir():
-                folders.append(path)
+                choices.append(path)
+                print(f'[{i}]\t{path}')
+                i += 1
+        choice = input("Choose one or more of the above by index seperated by spaces: ")
+        for index in [int(strindex) for strindex in choice.split(" ")]:
+            print("choice: ", index)
+            folders.append(choices[index])
     else:
         for path in folders:
             if not path.is_dir():
