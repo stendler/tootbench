@@ -62,28 +62,30 @@ cat banner.txt
 echo "Timestamp: $timestamp"
 echo "Repeats: $reps"
 echo "Runtime: $runtime"
-echo "Scenarios: $@"
+echo "Scenarios: $*"
 echo
 
 # todo: persists tootbench config in output folder & each scenario config
 
 for s in $(./scripts/scenarios.sh); do
-  case "$@" in *"$s"*)
-    for current_rep in $(seq $reps); do
-      scenario_cmd="-var-file=scenarios/$s.tfvars"
-      terraform -chdir=terraform apply "${scenario_cmd}" -auto-approve
-      ./scripts/await-ssh.sh
+  for available_s in $(./scripts/scenarios.sh); do
+    echo "$s == $available_s ?"
+    if [ "$s" == "$available_s" ]; then
+      for current_rep in $(seq "$reps"); do
+        scenario_cmd="-var-file=scenarios/$s.tfvars"
+        terraform -chdir=terraform apply "${scenario_cmd}" -auto-approve
+        ./scripts/await-ssh.sh
 
-      # do run the benchmark, wait, stop collect
-      make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" prepare start wait stop collect clean
-    done
-    shift ;;
-  esac
+        # do run the benchmark, wait, stop collect
+        make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" prepare start wait stop collect clean
+      done
+    fi
+  done
 done
 
 terraform -chdir=terraform destroy -auto-approve
 
-curl -H "Tags: white_check_mark" -H "Title: Tootbench", -d, "$timestamp done." "https://ntfy.sh/cloud-service-benchmarking-22"
+curl -H "Tags: white_check_mark" -H "Title: Tootbench" -d "$timestamp done." "https://ntfy.sh/cloud-service-benchmarking-22"
 
 ./analysis/preprocess.sh "playbooks/logs/$timestamp"
 # todo run python script?
