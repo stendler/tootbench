@@ -119,8 +119,8 @@ for s in "$@"; do
       for current_rep in $(seq "$reps"); do
         # do run the benchmark, wait, stop collect
         repeat_until_succeed run
-        repeat_until_succeed 'make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" collect'
-        repeat_until_succeed 'make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" clean'
+        repeat_until_succeed "make scenario=$s CURRENT_REP=$current_rep timestamp=$timestamp collect"
+        repeat_until_succeed "make scenario=$s CURRENT_REP=$current_rep timestamp=$timestamp clean"
       done
       # break out of inner loop
       break
