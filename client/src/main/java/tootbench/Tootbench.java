@@ -16,13 +16,18 @@ import okhttp3.OkHttpClient;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -66,14 +71,24 @@ public class Tootbench {
     }
   }
 
-  public void createUsersFromFile(Path userFile) throws IOException {
-    String host = Files.lines(userFile).findFirst().orElseThrow().split(" ")[1].split("@")[1];
-    hostAppClients.putIfAbsent(host, register(host)); // todo maybe create client per user --> move to loginUser
+  public void createUsersFromFile(Path userFile) {
+    final String host;
+    try (Stream<String> lines = Files.lines(userFile)) {
+      host = lines.findFirst().orElseThrow().split(" ")[1].split("@")[1];
+    } catch (IOException e) {
+      log.error("IO error on reading file {}", userFile);
+      Runtime.getRuntime().exit(1);
+      return;
+    }
+    hostAppClients.putIfAbsent(host, register(host)); // todo maybe create client per user --> move to loginUser. Does not seem to matter.
     log.debug("Logging in users of host {}", host);
     try (Stream<String> lines = Files.lines(userFile)) {
       lines.map(s -> s.split(" "))
         .filter(strings -> strings.length >= 3) // make sure the format is appropriate
         .forEach(strings -> loginUser(host, strings[1], strings[2]));
+    } catch (IOException e) {
+      log.error("IO error on reading file {}", userFile);
+      Runtime.getRuntime().exit(1);
     }
   }
 
@@ -112,10 +127,30 @@ public class Tootbench {
   }
 
   void makeEachUserFollowEachOther() {
-    for (User client : users) {
-      for (User followed : users) {
-        client.follow(followed.username());
+    Map<String, List<User>> usersPerInstance = users.stream().collect(Collectors.groupingBy(user -> user.username.substring(user.username.indexOf("@"))));
+    Duration followDuration = Duration.ofMinutes(2);
+    Instant beforeFollows = Instant.now();
+    try (ExecutorService followsPool = Executors.newCachedThreadPool()) {
+      for (Map.Entry<String, List<User>> instanceUsers : usersPerInstance.entrySet()) {
+        log.info("Starting follows of users on {}", instanceUsers.getKey());
+        followsPool.submit(() -> {
+          for (User user : instanceUsers.getValue()) {
+            for (User followed : users) {
+              user.follow(followed.username());
+            }
+          }
+        });
       }
+      followsPool.shutdown();
+      var terminatedInTime = followsPool.awaitTermination(followDuration.getSeconds(), TimeUnit.SECONDS);
+      log.info("Finished all follows. Sleeping now for the lefover duration until {}", beforeFollows.plus(followDuration));
+      Instant afterFollows = Instant.now();
+      Thread.sleep(followDuration.minus(Duration.between(beforeFollows, afterFollows)));
+      if (!terminatedInTime) {
+        log.warn("Could not finish all follows in duration of {}s", followDuration.toSeconds());
+      }
+    } catch (InterruptedException e) {
+      Runtime.getRuntime().exit(2);
     }
   }
 

@@ -18,8 +18,10 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
@@ -40,28 +42,39 @@ public class TootbenchApp {
   }
 
   public static void login(Tootbench client) {
-    // find files/Path[s] to createUsers from
-    var dir = new File("users");
-    try (var dirs = Files.newDirectoryStream(dir.toPath())) {
-      for (Path hostDir : dirs) {
-        try (var users = Files.newDirectoryStream(hostDir)) {
-          if (users != null) {
-            users.forEach(userFile -> {
-              if (userFile.getFileName().toString().equals("users.txt")) {
-                try {
-                  client.createUsersFromFile(userFile);
-                } catch (IOException e) {
-                  log.warn("IO error on reading file {}", userFile);
+    Duration loginDuration = Duration.ofSeconds(20);
+    Instant beforeLogin = Instant.now();
+    try (ExecutorService loginPool = Executors.newCachedThreadPool()) {
+
+      // find files/Path[s] to createUsers from
+      var dir = new File("users");
+      try (var dirs = Files.newDirectoryStream(dir.toPath())) {
+        for (Path hostDir : dirs) {
+          try (var users = Files.newDirectoryStream(hostDir)) {
+            if (users != null) {
+              users.forEach(userFile -> {
+                if (userFile.getFileName().toString().equals("users.txt")) {
+                  loginPool.submit(() -> client.createUsersFromFile(userFile));
                 }
-              }
-            });
+              });
+            }
           }
         }
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
       }
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
+      // todo safe user token, and registered client id and secret to file
+      loginPool.shutdown();
+      var terminatedInTime = loginPool.awaitTermination(loginDuration.getSeconds(), TimeUnit.SECONDS);
+      log.info("Finished all logins. Sleeping now for the leftover duration until {}", beforeLogin.plus(loginDuration));
+      Instant afterLogin = Instant.now();
+      Thread.sleep(loginDuration.minus(Duration.between(beforeLogin, afterLogin)));
+      if (!terminatedInTime) {
+        log.warn("Could not finish all logins in duration of {}s",loginDuration.toSeconds());
+      }
+    } catch (InterruptedException e) {
+      Runtime.getRuntime().exit(2);
     }
-    // todo safe user token, and registered client id and secret to file
   }
 
   public static void main(String[] args) {
