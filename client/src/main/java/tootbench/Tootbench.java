@@ -38,7 +38,7 @@ public class Tootbench {
 
   private final List<User> users = new ArrayList<>();
 
-  private final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(2*Runtime.getRuntime().availableProcessors(), runnable -> { var t = new Thread(runnable, CLIENT_NAME); t.setDaemon(true); return t; });
+  private ScheduledExecutorService threadPool;
 
   public Tootbench(String clientName) {
     this.clientName = clientName;
@@ -134,6 +134,22 @@ public class Tootbench {
     log.info("Starting run loop");
 
     log.info("Cores: {}", Runtime.getRuntime().availableProcessors());
+
+    // to mitigate that the load per instance does not decrease per total number of instances
+    int instances = (int) users.stream().map(User::username).map(s -> s.substring(s.indexOf("@"))).distinct().count();
+    log.info("Instances: {}", instances);
+    int poolSize = 2*instances*Runtime.getRuntime().availableProcessors();
+    log.info("Posting thread pool size: {}", poolSize);
+
+    // should never occur, but just as a safety measure
+    if (threadPool != null) {
+      log.warn("There is already a threadpool running. Shutting it down before starting a new one.");
+      threadPool.shutdownNow();
+    }
+
+    threadPool = Executors.newScheduledThreadPool(poolSize,
+      runnable -> { var t = new Thread(runnable, CLIENT_NAME); t.setDaemon(true); return t; });
+
     for (Statuses user : userStatus) {
       threadPool.scheduleWithFixedDelay(post(user), 0, 500, MILLISECONDS);
     }
