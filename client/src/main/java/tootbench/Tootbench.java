@@ -9,7 +9,10 @@ import com.sys1yagi.mastodon4j.api.Shutdownable;
 import com.sys1yagi.mastodon4j.api.entity.Account;
 import com.sys1yagi.mastodon4j.api.entity.auth.AppRegistration;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
-import com.sys1yagi.mastodon4j.api.method.*;
+import com.sys1yagi.mastodon4j.api.method.Accounts;
+import com.sys1yagi.mastodon4j.api.method.Apps;
+import com.sys1yagi.mastodon4j.api.method.Statuses;
+import com.sys1yagi.mastodon4j.api.method.Streaming;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 
@@ -186,7 +189,7 @@ public class Tootbench {
       runnable -> { var t = new Thread(runnable, CLIENT_NAME); t.setDaemon(true); return t; });
 
     for (Statuses user : userStatus) {
-      threadPool.scheduleWithFixedDelay(post(user), 0, 500, MILLISECONDS);
+      threadPool.scheduleWithFixedDelay(post(user), 0, 2500, MILLISECONDS);
     }
   }
 
