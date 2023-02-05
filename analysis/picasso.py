@@ -22,9 +22,25 @@ def main(path: Path):
     DockerStats(path).quick_stats()
 
 
-# maybe todo choose plots/tables to generate?
+def folder_selection() -> [Path]:
+    print("Available folders to analyze:")
+    i = 0
+    choices = []
+    folders = []
+    for path in Path("input").iterdir():
+        if path.is_dir():
+            choices.append(path)
+            print(f'[{i}]\t{path}')
+            i += 1
+    choice = input("Choose one or more of the above by index seperated by spaces: ")
+    for index in [int(strindex) for strindex in choice.split(" ")]:
+        print("choice: ", index)
+        folders.append(choices[index])
+    return folders
+
 
 if __name__ == "__main__":
+    # maybe todo choose plots/tables to generate?
     import argparse
 
     parser = argparse.ArgumentParser()
@@ -34,19 +50,7 @@ if __name__ == "__main__":
     folders = args.folders
 
     if len(folders) == 0:
-        # no arg given - do for all todo let choose and not just all
-        print("Available folders to analyze:")
-        i = 0
-        choices = []
-        for path in Path("input").iterdir():
-            if path.is_dir():
-                choices.append(path)
-                print(f'[{i}]\t{path}')
-                i += 1
-        choice = input("Choose one or more of the above by index seperated by spaces: ")
-        for index in [int(strindex) for strindex in choice.split(" ")]:
-            print("choice: ", index)
-            folders.append(choices[index])
+        folders = folder_selection()
     else:
         for path in folders:
             if not path.is_dir():
