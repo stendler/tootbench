@@ -105,22 +105,25 @@ function repeat_until_succeed() {
 
 function failure() {
   terraform -chdir=terraform destroy -auto-approve
-  curl -H "Tags: x" -H "Title: Tootbench" -d "$timestamp failed." "https://ntfy.sh/cloud-service-benchmarking-22"
+  echo 1>&2 "Tootbench run failure in scenario $s run $current_rep/$reps with name $timestamp"
+  curl -H "Tags: x" -H "Title: Tootbench failed" -d "$timestamp failed for $s run $current_rep/$reps" "https://ntfy.sh/cloud-service-benchmarking-22"
   exit 1
 }
 
 
 # todo: persists tootbench config in output folder & each scenario config
 
-for s in $(./scripts/scenarios.sh); do
+for s in "$@"; do
   for available_s in $(./scripts/scenarios.sh); do
-    echo "$s == $available_s ?"
     if [ "$s" == "$available_s" ]; then
       for current_rep in $(seq "$reps"); do
+        # do run the benchmark, wait, stop collect
         repeat_until_succeed run
         repeat_until_succeed 'make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" collect'
         repeat_until_succeed 'make scenario="$s" CURRENT_REP="$current_rep" timestamp="$timestamp" runtime="$runtime" clean'
       done
+      # break out of inner loop
+      break
     fi
   done
 done
