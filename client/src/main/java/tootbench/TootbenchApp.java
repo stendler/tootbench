@@ -1,8 +1,5 @@
 package tootbench;
 
-import com.sys1yagi.mastodon4j.api.Shutdownable;
-import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
-import com.sys1yagi.mastodon4j.api.method.Statuses;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -86,14 +83,14 @@ public class TootbenchApp {
       switch (args[0]) {
         case "--run" -> {
           try {
+            log.info("Start logins");
             login(tootbench);
-            Thread.sleep(Duration.ofSeconds(60));
+            Thread.sleep(Duration.ofSeconds(10));
+            log.info("Start follows");
             tootbench.makeEachUserFollowEachOther();
-            Thread.sleep(Duration.ofSeconds(60));
+            Thread.sleep(Duration.ofSeconds(10));
+            log.info("Starting benchmark");
             tootbench.start();
-            log.info("Started");
-            Thread.sleep(Duration.ofSeconds(10)); // seems to not stop after main thread exit currently anyway (probably the shutdown hook thread)
-            log.info("Sleeping done");
           } catch (InterruptedException e) {
             log.info("Sleeping cancelled");
             tootbench.shutdown();
