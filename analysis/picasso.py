@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 from pathlib import Path
-
-
-
-
+from lib.stats import Vmstat, Mpstat, CpuIO, DiskIO, DockerStats
 
 
 def main(path: Path):
     """
     Generate plots and tables for all log files in given path.
     """
-    print(path)
+    vmstat = Vmstat(path)
+    vmstat.cpu_utilization()
+    vmstat.io()
+    vmstat.interrupts()
+    vmstat.quick_stats()
 
-
+    CpuIO(path).quick_stats()
+    DiskIO(path).quick_stats()
+    Mpstat(path).quick_stats()
+    DockerStats(path).quick_stats()
 
 
 # maybe todo choose plots/tables to generate?
@@ -31,7 +35,7 @@ if __name__ == "__main__":
         print("Available folders to analyze:")
         i = 0
         choices = []
-        for path in Path("analysis/input").iterdir():
+        for path in Path("input").iterdir():
             if path.is_dir():
                 choices.append(path)
                 print(f'[{i}]\t{path}')
