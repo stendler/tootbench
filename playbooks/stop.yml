@@ -9,7 +9,7 @@
         state: stopped
     - name: Wait to collect benchmark aftermath metrics
       pause:
-        minutes: "1"
+        minutes: "3"
 
 - name: Stopping monitoring
   hosts: all
