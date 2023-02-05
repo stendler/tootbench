@@ -10,14 +10,18 @@ class Stats(ABC):
 
     @abstractmethod
     def __init__(self, stat: str, path: Path):
+        print("initializing", stat)
         self.stat = stat
         self.path = path
         self.save_path = Path(str(self.path).replace("input", "output"))
         self.df = pd.read_csv(path.joinpath(stat + ".log.gz")).sort_values(by="timestamp")
-        self.t_lowest = min(self.df["timestamp"])
+
+        self.t_lowest = self.df[["scenario", "run", "timestamp"]].groupby(by=["scenario", "run"]).min()
         # normalize timestamps by lowest one
-        self.df["time"] = self.df["timestamp"] - self.t_lowest
+        for i, group in self.df.groupby(by=["scenario", "run"]):
+            self.df.loc[group.index, 'time'] = group['timestamp'] - self.t_lowest['timestamp'][i]
         # override this
+        print("initialized.", stat)
 
     def _save_plot(self, filename: str):
         plt.tight_layout(pad=0.5)
@@ -187,3 +191,9 @@ class DockerStats(Stats):
         docker_quickstats["sum"] = df_qdocker.sum(numeric_only=True)
         self._save_table(docker_quickstats, "quickstats_docker")
         return self
+
+
+class Tootbench(Stats):
+
+    def __init__(self, path: Path):
+        super().__init__("tootbench", path)
