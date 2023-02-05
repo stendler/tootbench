@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import seaborn as sb
 from lib.stats import Vmstat, Mpstat, CpuIO, DiskIO, DockerStats
 
 
@@ -7,6 +8,8 @@ def main(path: Path):
     """
     Generate plots and tables for all log files in given path.
     """
+    sb.set()
+
     vmstat = Vmstat(path)
     vmstat.cpu_utilization()
     vmstat.io()

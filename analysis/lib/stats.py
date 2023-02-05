@@ -20,6 +20,7 @@ class Stats(ABC):
         # override this
 
     def _save_plot(self, filename: str):
+        plt.tight_layout(pad=0.5)
         Path(self.save_path, "pdf").mkdir(parents=True, exist_ok=True)
         Path(self.save_path, "svg").mkdir(parents=True, exist_ok=True)
         Path(self.save_path, "png").mkdir(parents=True, exist_ok=True)
@@ -33,7 +34,10 @@ class Stats(ABC):
         Path(self.save_path, "table").mkdir(parents=True, exist_ok=True)
         df.to_csv(Path(self.save_path, "csv", filename + ".csv"))
 
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(19, 5))
+        plt.tight_layout(pad=0.5)
+        #fig.set_frameon(False)
+        plt.tight_layout()
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         pd.plotting.table(ax, df, loc='center')
@@ -148,8 +152,8 @@ def clean_docker_stats_units(x: str) -> np.float64:
     """
     if x.endswith("kB"):
         return np.float64(x.removesuffix("kB"))
-    if x.endswith("kiB"):
-        return np.float64(x.removesuffix("kiB"))
+    if x.endswith("KiB"):
+        return np.float64(x.removesuffix("KiB"))
     if x.endswith("MB"):
         return np.divide(np.float64(x.removesuffix("MB")), 1000)
     if x.endswith("MiB"):
@@ -170,6 +174,8 @@ class DockerStats(Stats):
         self.df["net_output"] = self.df["net_output"].map(clean_docker_stats_units)
         self.df["block_input"] = self.df["block_input"].map(clean_docker_stats_units)
         self.df["block_output"] = self.df["block_output"].map(clean_docker_stats_units)
+        self.df["mem_usage"] = self.df["mem_usage"].map(clean_docker_stats_units)
+        self.df["mem_limit"] = self.df["mem_limit"].map(clean_docker_stats_units)
 
     def quick_stats(self) -> "DockerStats":
         df = self.df[self.df["host"] != "client"]
