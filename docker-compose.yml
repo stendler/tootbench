@@ -141,6 +141,7 @@ services:
     depends_on:
       - db
       - redis
+      - mail
       # - es
     volumes:
       - assets:/mastodon/public/:ro
@@ -181,6 +182,7 @@ services:
     depends_on:
       - db
       - redis
+      - mail
     networks:
       - external_network
       - internal_network
@@ -209,6 +211,20 @@ services:
       - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./cert/${hostname:-localhost}:/etc/letsencrypt/live/${hostname:-localhost}:ro
       - assets:/home/mastodon/live/public:ro
+
+  mail:
+    image: greenmail/standalone:1.6.12
+    restart: always
+    networks:
+      - internal_network
+    ports:
+      - "3025:3025"
+      - "3110:3110"
+      - "3143:3143"
+      - "3465:3465"
+      - "3993:3993"
+      - "3995:3995"
+      - "8080:8080"
 
   ## Uncomment to enable federation with tor instances along with adding the following ENV variables
   ## http_proxy=http://privoxy:8118
