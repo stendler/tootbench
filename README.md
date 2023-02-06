@@ -104,16 +104,18 @@ make init
 ```
 
 ## TODO
-- scenarios:
-  - 1x30, 2x15, 3x10
-  - 1x10, 2x10, 3x10
-  - ~~1x15, 1x15+1x30, 1x10+1x15+1x30~~
-- client: parallelize logins (and also follows)
-- increase number of threads of the threadpool?
-- move docker-compose.yaml from cloud-init to prepare
-- client
-  - configurable how many users post and how many users listen
-  - wait endlessly until shutdown (seems to be the case now already(?))
+- switch mastodon version to 4.0.2 again
+- switch to official image again (should be fine for the currently low post intervals)
+- client: randomized messages (sha512sum of increments?)
+- better machines? (at least more cores for mastodon) - e2-standard-4 / e2-highcpu-4 / n2-highcpu-4 / e2-custom-6-6144?
+- plotting:
+  - docker stats per scenario
+  - quickstats per scenario
+  - tootbench:
+    - total number of sent messages
+    - average received messages
+    - latency
+    - 
   - are the intervals really 1 sec each per thread? (should be visible in the logs as well though)
 - docker-compose: limit resources / set min reserved
 
@@ -121,8 +123,6 @@ make init
 - client vms for load generation instructed from a controller
   - single client vm for now, since its rate limited anyway
 
-Cleanup:
-- remove debug logging
 - 
 - update README: 
   - make usage & requirements
