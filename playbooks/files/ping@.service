@@ -1,0 +1,8 @@
+[Unit]
+Description=Network latency monitoring of %i with ping
+
+[Service]
+Type=simple
+ExecStart=/bin/ping -O %i
+RemainAfterExit=no
+Restart=no
