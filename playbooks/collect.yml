@@ -38,6 +38,8 @@
       shell: "journalctl -u mpstat -o short-unix | gzip > {{ outputdir }}/mpstat.log.gz"
     - name: Write docker stats service monitoring log
       shell: "journalctl -u docker-stats -o short-unix | gzip > {{ outputdir }}/docker-stats.log.gz"
+    - name: Write ping service monitoring log
+      shell: "journalctl -u ping@* -o short-unix | gzip > {{ outputdir }}/ping.log.gz"
     - name: Collect logs
       synchronize:
         mode: pull

@@ -27,16 +27,15 @@
       copy:
         src: mpstat.service
         dest: /etc/systemd/system/
-    # (systemd timer) docker stats --no-stream
+    # docker stats (as the it took to long with a timer and --no-stream)
     - name: Install docker-stats service
       copy:
         src: docker-stats.service
         dest: /etc/systemd/system/
-    - name: Install docker-stats timer
+    - name: Install ping service
       copy:
-        src: docker-stats.timer
+        src: ping@.service
         dest: /etc/systemd/system/
-    # (maybe?) netstat --continuous --tcp --udp
 
 - name: Setup Mastodon on the instances
   hosts: instances

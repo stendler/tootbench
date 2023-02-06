@@ -35,10 +35,11 @@
       systemd:
         name: docker-stats.service
         state: stopped
-    - name: Stopping docker stats monitoring service timer
+    - name:
       systemd:
-        name: docker-stats.timer
+        name: "ping@{{ item }}.service"
         state: stopped
+      loop: "{{ ansible_play_batch|difference(inventory_hostname) }}"
 
 - name: Stopping Mastodon
   hosts: instances

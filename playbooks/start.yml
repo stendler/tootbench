@@ -19,10 +19,11 @@
       systemd:
         name: mpstat.service
         state: started
-#    - name: Start docker stats monitoring service timer
-#      systemd:
-#        name: docker-stats.timer
-#        state: started
+    - name: Start ping monitoring services
+      systemd:
+        name: "ping@{{ item }}.service"
+        state: started
+      loop: "{{ ansible_play_batch|difference(inventory_hostname) }}"
     - name: Start docker stats monitoring service
       systemd:
         name: docker-stats.service
