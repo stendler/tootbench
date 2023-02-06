@@ -175,9 +175,6 @@ services:
     image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
     restart: always
     env_file: .env.production
-#    environment:
-#      - DB_HOST=db
-#      - REDIS_HOST=redis
     command: bundle exec sidekiq
     depends_on:
       - db
@@ -191,6 +188,8 @@ services:
       - /etc/ssl/certs:/etc/ssl/certs:ro
     healthcheck:
       test: ['CMD-SHELL', "ps aux | grep '[s]idekiq\ 6' || false"]
+    deploy:
+      replicas: 5
 
   nginx:
     image: nginx:1.23.2
