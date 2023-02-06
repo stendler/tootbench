@@ -27,13 +27,17 @@ public class TootLoggingHandler implements Handler {
 
   @Override
   public void onStatus(@NotNull Status status) {
-    // status,username (sender),receive timestamp, server timestamp, username (receiver)
-    log.trace("status,{},{},{},{}",
+    // status,username (sender),receive timestamp, server timestamp, username (receiver),url,uri,acct,account_url
+    log.trace("status,{},{},{},{},{},{},{},{}",
       Optional.ofNullable(status.getAccount()).map(Account::getUserName).orElse("null"),
       LocalDateTime.now(),
       status.getCreatedAt(),
-      username
-    );
+      username,
+      status.getUrl(),
+      status.getUri(),
+      status.getAccount().getAcct(),
+      status.getAccount().getUrl()
+      );
   }
 
   public static void logPostResponse(LocalDateTime requestedOn, String username, Status status) {
