@@ -2,9 +2,6 @@
 #cloud-config
 
 write_files:
-  - path: /home/ansible/docker-compose.yml
-    encoding: base64
-    content: ${base64encode(dockerCompose)}
   - path: /home/ansible/nginx.conf.template
     encoding: base64
     content: ${base64encode(nginxTemplate)}
@@ -12,5 +9,4 @@ write_files:
 runcmd:
   - [ git, clone, --branch, v3.5.5, --depth, "1", "https://github.com/mastodon/mastodon.git", /home/ansible/mastodon ]
   - [ chown, -R, "ansible:ansible", /home/ansible ]
-#  - [ docker, compose, --project-directory, /home/ansible/, --project-name, mastodon, pull, --quiet ]
   - [ curl, -H, "Tags: elephant", -H, "Title: CSB {{ v1.local_hostname }} deployed", -d, "{{ v1.local_hostname }} running mastodon now", "https://ntfy.sh/cloud-service-benchmarking-22" ]
