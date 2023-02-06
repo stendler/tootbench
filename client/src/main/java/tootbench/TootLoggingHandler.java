@@ -36,10 +36,10 @@ public class TootLoggingHandler implements Handler {
     );
   }
 
-  public static void logPostResponse(LocalDateTime requestedOn, Status status) {
+  public static void logPostResponse(LocalDateTime requestedOn, String username, Status status) {
     // post,username (sender),sent timestamp, server timestamp
     log.trace("post,{},{},{}",
-      Optional.ofNullable(status.getAccount()).map(Account::getUserName).orElse("null"),
+      username,
       requestedOn,
       status.getCreatedAt());
   }

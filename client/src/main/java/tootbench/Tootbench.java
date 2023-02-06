@@ -154,10 +154,13 @@ public class Tootbench {
     }
   }
 
-  Runnable post(Statuses user) {
+  Runnable post(Statuses user, String username, Random messageRandomizer) {
     return () -> {
       try {
-        TootLoggingHandler.logPostResponse(LocalDateTime.now(), user.postStatus("My cool status", null, null, false, null).execute());
+        byte[] bytes = new byte[200];
+        messageRandomizer.nextBytes(bytes);
+        String message = Base64.getEncoder().encodeToString(bytes);
+        TootLoggingHandler.logPostResponse(LocalDateTime.now(), username, user.postStatus(message, null, null, false, null).execute());
       } catch (Mastodon4jRequestException e) {
         log.warn("User post error. The user may be rate limited?");
       }
@@ -165,7 +168,6 @@ public class Tootbench {
   }
 
   public void start() {
-    List<Statuses> userStatus = users.stream().map(User::clientSender).map(Statuses::new).toList();
     log.info("Starting run loop");
 
     log.info("Cores: {}", Runtime.getRuntime().availableProcessors());
@@ -187,9 +189,10 @@ public class Tootbench {
 
     Duration postIntervall = Duration.ofMillis(5500);
     Random initialJitter = new Random(5318008);
+    Random messageRandomizer = new Random(5318008);
 
-    for (Statuses user : userStatus) {
-      threadPool.scheduleWithFixedDelay(post(user), initialJitter.nextLong(postIntervall.toMillis()), postIntervall.toMillis(), MILLISECONDS);
+    for (User user : users) {
+      threadPool.scheduleWithFixedDelay(post(new Statuses(user.clientSender), user.username, messageRandomizer), initialJitter.nextLong(postIntervall.toMillis()), postIntervall.toMillis(), MILLISECONDS);
     }
   }
 
