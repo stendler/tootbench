@@ -188,8 +188,11 @@ public class Tootbench {
     threadPool = Executors.newScheduledThreadPool(poolSize,
       runnable -> { var t = new Thread(runnable, CLIENT_NAME); t.setDaemon(true); return t; });
 
+    Duration postIntervall = Duration.ofMillis(5500);
+    Random initialJitter = new Random(5318008);
+
     for (Statuses user : userStatus) {
-      threadPool.scheduleWithFixedDelay(post(user), 0, 2500, MILLISECONDS);
+      threadPool.scheduleWithFixedDelay(post(user), initialJitter.nextLong(postIntervall.toMillis()), postIntervall.toMillis(), MILLISECONDS);
     }
   }
 
