@@ -22,10 +22,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -188,8 +185,11 @@ public class Tootbench {
     threadPool = Executors.newScheduledThreadPool(poolSize,
       runnable -> { var t = new Thread(runnable, CLIENT_NAME); t.setDaemon(true); return t; });
 
+    Duration postIntervall = Duration.ofMillis(5500);
+    Random initialJitter = new Random(5318008);
+
     for (Statuses user : userStatus) {
-      threadPool.scheduleWithFixedDelay(post(user), 0, 2500, MILLISECONDS);
+      threadPool.scheduleWithFixedDelay(post(user), initialJitter.nextLong(postIntervall.toMillis()), postIntervall.toMillis(), MILLISECONDS);
     }
   }
 
