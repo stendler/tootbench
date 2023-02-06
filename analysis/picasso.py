@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
+
+import lib.filter as filter
 import seaborn as sb
 from lib.stats import Vmstat, Mpstat, CpuIO, DiskIO, DockerStats
 
@@ -13,15 +15,15 @@ def main(path: Path):
     sb.set_context("talk")
 
     vmstat = Vmstat(path)
-    vmstat.cpu_utilization()
-    vmstat.io()
-    vmstat.interrupts()
-    vmstat.quick_stats()
+    vmstat.cpu_utilization(filter.instances).cpu_utilization(filter.client, "client")
+    vmstat.io(filter.instances).io(filter.client, "client")
+    vmstat.interrupts(filter.instances).interrupts(filter.client, "client")
+    vmstat.quick_stats(filter.instances).quick_stats(filter.client, "client")
 
-    CpuIO(path).quick_stats()
-    DiskIO(path).quick_stats()
-    Mpstat(path).quick_stats()
-    DockerStats(path).quick_stats()
+    CpuIO(path).quick_stats(filter.instances).quick_stats(filter.client, "client")
+    DiskIO(path).quick_stats(filter.instances).quick_stats(filter.client, "client")
+    Mpstat(path).quick_stats(filter.instances).quick_stats(filter.client, "client")
+    DockerStats(path).quick_stats(filter.instances).quick_stats(filter.client, "client")
 
 
 def folder_selection() -> [Path]:
