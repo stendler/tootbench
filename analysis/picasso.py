@@ -9,6 +9,8 @@ def main(path: Path):
     Generate plots and tables for all log files in given path.
     """
     sb.set()
+    sb.set_style("whitegrid")
+    sb.set_context("talk")
 
     vmstat = Vmstat(path)
     vmstat.cpu_utilization()
