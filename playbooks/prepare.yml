@@ -41,6 +41,10 @@
 - name: Setup Mastodon on the instances
   hosts: instances
   tasks:
+    - name: Docker compose yaml
+      copy:
+        src: docker-compose.yml
+        dest: .
     - name: .env.production
       template:
         src: .env.production.jinja2

@@ -1,7 +1,6 @@
 data "template_file" "cloud_init_instance_extension" {
   template = file("mastodon.extend.cloud-init.yml")
   vars = {
-    dockerCompose = file("../docker-compose.yml")
     nginxTemplate = file("../nginx.conf.template")
   }
 }
