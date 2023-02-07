@@ -23,7 +23,8 @@ def main(path: Path):
     cio = CpuIO(path)
     dio = DiskIO(path)
     mpstat = Mpstat(path)
-    docker = DockerStats(path)
+    docker = DockerStats(path).memory()
+    ping = Ping(path).lineplot()
 
     for scenario in vmstat.scenarios:
         vmstat.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\

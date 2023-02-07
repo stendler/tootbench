@@ -198,7 +198,19 @@ class DockerStats(Stats):
         self.df["mem_usage"] = self.df["mem_usage"].map(clean_docker_stats_units)
         self.df["mem_limit"] = self.df["mem_limit"].map(clean_docker_stats_units)
 
-    def quick_stats(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none, name: str = "mastodon") -> "DockerStats":
+    def memory(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
+               name: str = "mastodon",):
+        df = filter_fun(self.df).groupby(by=["scenario", "run", "timestamp", "time", "host"], as_index=False).sum()
+        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        ax.set_xlabel("Time in seconds")
+        ax.set_ylabel("Memory utilization of all containers")
+        sb.lineplot(x="time", y="mem_pct", hue="scenario", style="host", data=df, ax=ax)
+        self._save_plot(f"docker_mem_all_{name}", close=True)
+        return self
+
+
+    def quick_stats(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
+                    name: str = "mastodon") -> "DockerStats":
         df = filter_fun(self.df)
         containers = df["name"].unique()
         for container in containers:
@@ -209,6 +221,25 @@ class DockerStats(Stats):
             docker_quickstats["median"] = df_qdocker.median(numeric_only=True)
             docker_quickstats["sum"] = df_qdocker.sum(numeric_only=True)
             self._save_table(docker_quickstats, f"quickstats_docker_{container}_{name}")
+        return self
+
+
+
+class Ping(Stats):
+
+    def __init__(self, path: Path):
+        super().__init__("ping", path)
+
+    def lineplot(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
+                 name: str = "mastodon", log: bool = False) -> "Ping":
+        df = filter_fun(self.df)
+        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        ax.set_xlabel("Time in seconds")
+        ax.set_ylabel("Ping latency in ms")
+        if log:
+            ax.set_yscale("log", base=10)
+        sb.lineplot(x="time", y="time", hue="host", style="target", data=df, ax=ax)
+        self._save_plot(f"ping_{name}", close=True)
         return self
 
 

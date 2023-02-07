@@ -13,7 +13,7 @@ fi
 
 for timestamp in $folders; do
   echo 1>&2 "preprocessing in $timestamp"
-  for stat in vmstat iostat-cpu iostat-disk mpstat docker-stats tootbench; do
+  for stat in vmstat iostat-cpu iostat-disk mpstat docker-stats tootbench ping; do
     printf 1>&2 "preprocessing ... $stat "
     for scenario in $(find "$timestamp" -mindepth 1 -maxdepth 1 -type d); do
       printf 1>&2 "\t%s " "$(basename "$scenario")"
