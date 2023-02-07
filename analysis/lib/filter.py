@@ -1,3 +1,7 @@
+"""
+Collection of filter functions to be used on pandas DataFrames.
+"""
+
 from typing import Callable
 
 from pandas import DataFrame

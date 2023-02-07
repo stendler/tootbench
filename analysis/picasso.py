@@ -16,14 +16,25 @@ def main(path: Path):
 
     vmstat = Vmstat(path)
     vmstat.cpu_utilization(filter.instances).cpu_utilization(filter.client, "client")
-    vmstat.io(filter.instances).io(filter.client, "client")
-    vmstat.interrupts(filter.instances).interrupts(filter.client, "client")
-    vmstat.quick_stats(filter.instances).quick_stats(filter.client, "client")
+    #vmstat.io(filter.instances).io(filter.client, "client")
+    #vmstat.interrupts(filter.instances).interrupts(filter.client, "client")
 
-    CpuIO(path).quick_stats(filter.instances).quick_stats(filter.client, "client")
-    DiskIO(path).quick_stats(filter.instances).quick_stats(filter.client, "client")
-    Mpstat(path).quick_stats(filter.instances).quick_stats(filter.client, "client")
-    DockerStats(path).quick_stats(filter.instances).quick_stats(filter.client, "client")
+    cio = CpuIO(path)
+    dio = DiskIO(path)
+    mpstat = Mpstat(path)
+    docker = DockerStats(path)
+
+    for scenario in vmstat.scenarios:
+        vmstat.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
+            .quick_stats(filter.client, f"{scenario}_client")
+        cio.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
+            .quick_stats(filter.client, f"{scenario}_client")
+        dio.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
+            .quick_stats(filter.client, f"{scenario}_client")
+        mpstat.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
+            .quick_stats(filter.client, f"{scenario}_client")
+        docker.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
+            .quick_stats(filter.client, f"{scenario}_client")
 
 
 def folder_selection() -> [Path]:

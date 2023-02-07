@@ -194,15 +194,17 @@ class DockerStats(Stats):
         self.df["mem_usage"] = self.df["mem_usage"].map(clean_docker_stats_units)
         self.df["mem_limit"] = self.df["mem_limit"].map(clean_docker_stats_units)
 
-    def quick_stats(self, filter: Callable[[pd.DataFrame], pd.DataFrame] = filter.none, name: str = "mastodon") -> "DockerStats":
-        df = filter(self.df)
-        df_qdocker = df[df.columns[4:]]
-        docker_quickstats = pd.DataFrame(data={"max": df_qdocker.max()})
-        docker_quickstats["min"] = df_qdocker.min(numeric_only=True)
-        docker_quickstats["mean"] = df_qdocker.mean(numeric_only=True)
-        docker_quickstats["median"] = df_qdocker.median(numeric_only=True)
-        docker_quickstats["sum"] = df_qdocker.sum(numeric_only=True)
-        self._save_table(docker_quickstats, "quickstats_docker_" + name)
+    def quick_stats(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none, name: str = "mastodon") -> "DockerStats":
+        df = filter_fun(self.df)
+        containers = df["name"].unique()
+        for container in containers:
+            df_qdocker = filter.column("name", container)(df)[df.columns[4:]]
+            docker_quickstats = pd.DataFrame(data={"max": df_qdocker.max()})
+            docker_quickstats["min"] = df_qdocker.min(numeric_only=True)
+            docker_quickstats["mean"] = df_qdocker.mean(numeric_only=True)
+            docker_quickstats["median"] = df_qdocker.median(numeric_only=True)
+            docker_quickstats["sum"] = df_qdocker.sum(numeric_only=True)
+            self._save_table(docker_quickstats, f"quickstats_docker_{container}_{name}")
         return self
 
 
