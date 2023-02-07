@@ -4,7 +4,7 @@
 
 if [ -f "$1" ]; then
   # header
-  echo "scenario,run,timestamp_iso,message_type,sender_username,message_timestamp,server_timestamp,receiver_username" | gzip
+  echo "scenario,run,timestamp_iso,message_type,message_len,sender_username,message_timestamp,server_timestamp,receiver_username" | gzip
   cat "$1"
 else
   echo 1>&2 "client log file not found"
