@@ -157,7 +157,7 @@ public class Tootbench {
   Runnable post(Statuses user, String username, Random messageRandomizer) {
     return () -> {
       try {
-        byte[] bytes = new byte[200];
+        byte[] bytes = new byte[100];
         messageRandomizer.nextBytes(bytes);
         String message = Base64.getEncoder().encodeToString(bytes);
         TootLoggingHandler.logPostResponse(LocalDateTime.now(), username, user.postStatus(message, null, null, false, null).execute());
