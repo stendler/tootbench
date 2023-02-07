@@ -12,9 +12,9 @@ scenario = {
       listening_users = 10
     }
    ,{
-      users = 30
-      posting_users = 30
-      listening_users = 30
+      users = 5
+      posting_users = 5
+      listening_users = 5
     }
 #   ,{
 #      users = 10
