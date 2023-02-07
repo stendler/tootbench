@@ -209,14 +209,6 @@ services:
     restart: always
     networks:
       - internal_network
-    ports:
-      - "3025:3025"
-      - "3110:3110"
-      - "3143:3143"
-      - "3465:3465"
-      - "3993:3993"
-      - "3995:3995"
-      - "8080:8080"
 
   ## Uncomment to enable federation with tor instances along with adding the following ENV variables
   ## http_proxy=http://privoxy:8118
