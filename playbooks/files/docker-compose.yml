@@ -34,11 +34,10 @@ services:
 
 # run directly with `docker compose run db-migrate`
   db-migrate:
-    build: mastodon
-    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
+    image: tootsuite/mastodon:${MASTODON_VERSION:-v4.0.2}
     env_file: .env.production
-    environment:
-      - DISABLE_DATABASE_ENVIRONMENT_CHECK=1
+    #environment:
+    #  - DISABLE_DATABASE_ENVIRONMENT_CHECK=1
     #  - DB_HOST=db
     #      - REDIS_HOST=redis
     command: bash -c "bundle exec rake db:setup"
@@ -46,26 +45,23 @@ services:
       - internal_network
     depends_on:
       - db
-      - redis
     profiles:
       - migrate
 
   precompile-assets:
-    build: mastodon
-    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
+    image: tootsuite/mastodon:${MASTODON_VERSION:-v4.0.2}
     env_file: .env.production
     command: bash -c "bundle exec rake assets:precompile"
     networks:
       - internal_network
     volumes:
-      - ./mastodon/public/:/mastodon/public/:ro
+#      - ./mastodon/public/:/mastodon/public/:ro
       - assets:/opt/mastodon/public
     profiles:
       - migrate
 
   tootctl:
-    build: mastodon
-    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
+    image: tootsuite/mastodon:${MASTODON_VERSION:-v4.0.2}
     env_file: .env.production
     entrypoint: tootctl
     command: --help
@@ -82,7 +78,7 @@ services:
 
   redis:
     restart: always
-    image: redis:6-alpine
+    image: redis:7-alpine
     networks:
       - internal_network
     healthcheck:
@@ -122,8 +118,7 @@ services:
 #     - '127.0.0.1:9200:9200'
 
   web:
-    build: mastodon
-    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
+    image: tootsuite/mastodon:${MASTODON_VERSION:-v4.0.2}
     restart: always
     env_file: .env.production
 #    environment:
@@ -148,8 +143,7 @@ services:
       - /etc/ssl/certs:/etc/ssl/certs:ro
 
   streaming:
-    build: mastodon
-    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
+    image: tootsuite/mastodon:${MASTODON_VERSION:-v4.0.2}
     restart: always
     env_file: .env.production
 #    environment:
@@ -171,8 +165,7 @@ services:
       - /etc/ssl/certs:/etc/ssl/certs:ro
 
   sidekiq:
-    build: mastodon
-    image: git.tu-berlin.de:5000/stendler/tootbench/mastodon:${MASTODON_VERSION:-v3.5.5}
+    image: tootsuite/mastodon:${MASTODON_VERSION:-v4.0.2}
     restart: always
     env_file: .env.production
     command: bundle exec sidekiq

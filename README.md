@@ -16,6 +16,11 @@ Other requirements - alternatively provided in the gcloud-terraform image (see `
 - Ansible
 - gcloud SDK
 
+For analysis:
+
+- python3
+- poetry
+
 ## Usage
 
 <details><summary>Setup (for local dev deployment)</summary>
@@ -104,9 +109,6 @@ make init
 ```
 
 ## TODO
-- switch mastodon version to 4.0.2 again
-- switch to official image again (should be fine for the currently low post intervals)
-- client: randomized messages (sha512sum of increments?)
 - better machines? (at least more cores for mastodon) - e2-standard-4 / e2-highcpu-4 / n2-highcpu-4 / e2-custom-6-6144?
 - plotting:
   - docker stats per scenario
@@ -119,18 +121,13 @@ make init
   - are the intervals really 1 sec each per thread? (should be visible in the logs as well though)
 - docker-compose: limit resources / set min reserved
 
-- use vm machine type without bursts: e2-standard-2 should be fine - maybe n2 for 10 gig egress instead of 4
-- client vms for load generation instructed from a controller
-  - single client vm for now, since its rate limited anyway
-
-- 
 - update README: 
   - make usage & requirements
-  - adjust tootbench for benchmark runs
+  - usage of adjusted tootbench for benchmark runs
+  - use container for python&poetry if not available on the system?
 
 ## Future ToDos
 
-- add a working email server (proxy like mailslurper) to simulate load produced by sending notification emails?
 - monitoring services: move all at once (folder) and specify a custom common target to start them
 - monitoring services: awk only relevant lines
 - user avatars (differing per user globally) --> load
