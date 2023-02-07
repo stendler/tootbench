@@ -50,7 +50,7 @@ class Stats(ABC):
 
         fig, ax = plt.subplots(figsize=(19, 5))
         plt.tight_layout(pad=0.5)
-        #fig.set_frameon(False)
+        # fig.set_frameon(False)
         plt.tight_layout()
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
@@ -79,7 +79,7 @@ class Vmstat(Stats):
         ax.set_xlabel("Time in seconds")
         ax.set_ylabel("CPU user & system utilisation percentage")
         sb.lineplot(x="time", y="user_time", hue="scenario", data=df, ax=ax, linestyle="dashed", legend=True)
-        #self._save_plot("vmstat-user-utilization_" + name, close=True)
+        # self._save_plot("vmstat-user-utilization_" + name, close=True)
         sb.lineplot(x="time", y="user+kernel", hue="scenario", data=df, ax=ax, linestyle="dotted", legend=False)
         self._save_plot("vmstat-kernel-utilization_" + name)
         return self
@@ -119,6 +119,7 @@ class Vmstat(Stats):
         vsstats_quickstats["sum"] = df_qvmstat.sum(numeric_only=True)
         self._save_table(vsstats_quickstats, "quickstats_vmstat_" + name)
         return self
+
 
 class DiskIO(Stats):
 
@@ -182,7 +183,7 @@ def clean_docker_stats_units(x: str) -> np.float64:
     if x.endswith("GB"):
         return np.divide(np.float64(x.removesuffix("GB")), 1_000_000)
     if x.endswith("GiB"):
-        return np.divide(np.float64(x.removesuffix("GiB")), 1024*1024)
+        return np.divide(np.float64(x.removesuffix("GiB")), 1024 * 1024)
     if x.endswith("B"):
         return np.multiply(np.float64(x.removesuffix("B")), 1000)
 
@@ -197,6 +198,23 @@ class DockerStats(Stats):
         self.df["block_output"] = self.df["block_output"].map(clean_docker_stats_units)
         self.df["mem_usage"] = self.df["mem_usage"].map(clean_docker_stats_units)
         self.df["mem_limit"] = self.df["mem_limit"].map(clean_docker_stats_units)
+        self.df["container_name"] = self.df["name"].map(lambda s: s[:-2])  # strip replica number from name
+        self.df_container = self.df[
+            ["scenario", "run", "timestamp", "time", "host", "cpu_pct", "mem_pct", "net_input",
+             "net_output", "block_input", "block_output", "container_name"]] \
+            .groupby(by=["scenario", "run", "timestamp", "time", "host", "container_name"], as_index=False).mean()
+
+    def lineplot(self, column: str, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
+                 name: str = "mastodon", log: bool = False) -> "DockerStats":
+        df = filter_fun(self.df_container)
+        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        ax.set_xlabel("Time in seconds")
+        ax.set_ylabel(column)
+        if log:
+            ax.set_yscale("log", base=10)
+        sb.lineplot(x="time", y=column, hue="container_name", data=df, ax=ax)
+        self._save_plot(f"docker_{column}_{name}", close=True)
+        return self
 
     def memory(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
                name: str = "mastodon",):
@@ -212,7 +230,7 @@ class DockerStats(Stats):
     def quick_stats(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
                     name: str = "mastodon") -> "DockerStats":
         df = filter_fun(self.df)
-        containers = df["name"].unique()
+        containers = sorted(df["name"].map(lambda s: s[:-2]).unique())
         for container in containers:
             df_qdocker = filter.column("name", container)(df)[df.columns[4:]]
             docker_quickstats = pd.DataFrame(data={"max": df_qdocker.max()})

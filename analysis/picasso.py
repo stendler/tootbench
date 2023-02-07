@@ -35,8 +35,14 @@ def main(path: Path):
             .quick_stats(filter.client, f"{scenario}_client")
         mpstat.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
             .quick_stats(filter.client, f"{scenario}_client")
-        docker.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
-            .quick_stats(filter.client, f"{scenario}_client")
+        docker.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario) \
+            .quick_stats(filter.client, f"{scenario}_client") \
+            .lineplot("cpu_pct", filter.scenario(scenario), scenario) \
+            .lineplot("mem_pct", filter.scenario(scenario), scenario) \
+            .lineplot("net_input", filter.scenario(scenario), scenario, True) \
+            .lineplot("net_output", filter.scenario(scenario), scenario, True) \
+            .lineplot("block_input", filter.scenario(scenario), scenario, True) \
+            .lineplot("block_output", filter.scenario(scenario), scenario, True)
 
 
 def folder_selection() -> [Path]:
