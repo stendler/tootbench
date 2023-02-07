@@ -149,6 +149,7 @@ class CpuIO(Stats):
         cpuio_quickstats["min"] = df_qcpuio.min(numeric_only=True)
         cpuio_quickstats["mean"] = df_qcpuio.mean(numeric_only=True)
         cpuio_quickstats["median"] = df_qcpuio.median(numeric_only=True)
+        cpuio_quickstats["sum"] = df_qcpuio.sum(numeric_only=True)
         self._save_table(cpuio_quickstats, "quickstats_cpuio_" + name)
         return self
 
@@ -161,9 +162,9 @@ class Mpstat(Stats):
         df = filter(self.df)
         df_qmpstat = df[df.columns[4:]]
         mpstat_quickstats = pd.DataFrame(data={"max": df_qmpstat.max()})
-        mpstat_quickstats["min"] = df_qmpstat.min(numeric_only=True)
         mpstat_quickstats["mean"] = df_qmpstat.mean(numeric_only=True)
         mpstat_quickstats["median"] = df_qmpstat.median(numeric_only=True)
+        mpstat_quickstats["sum"] = df_qmpstat.sum(numeric_only=True)
         self._save_table(mpstat_quickstats, "quickstats_mpstat_" + name)
         return self
 
