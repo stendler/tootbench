@@ -8,8 +8,8 @@ variable "scenario" {
     mastodon_version = string
     instances = list(object({
       users = number # todo obsolete by using max(posting_users, listening_users) instead
-      posting_users = number # number of users that post
-      listening_users = number # number of users that listen
+      posting_users = number # number of users that post (todo currently unused)
+      listening_users = number # number of users that listen (todo currently unused)
     }))
     # todo maybe clients (?)
   })
