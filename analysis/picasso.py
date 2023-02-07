@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+import os
 from pathlib import Path
 
 import lib.filter as filter
 import seaborn as sb
-from lib.stats import Vmstat, Mpstat, CpuIO, DiskIO, DockerStats
+from lib.stats import Vmstat, Mpstat, CpuIO, DiskIO, DockerStats, Ping
 
 
 def main(path: Path):
@@ -40,17 +41,18 @@ def main(path: Path):
 def folder_selection() -> [Path]:
     print("Available folders to analyze:")
     i = 0
-    choices = []
+    choices = sorted([str(path.path) for path in os.scandir("input") if path.is_dir()], reverse=True)
     folders = []
-    for path in Path("input").iterdir():
-        if path.is_dir():
-            choices.append(path)
-            print(f'[{i}]\t{path}')
-            i += 1
-    choice = input("Choose one or more of the above by index seperated by spaces: ")
+
+    for path in choices:
+        print(f'[{i}]\t{path}')
+        i += 1
+    choice = input("Choose one or more of the above by index seperated by spaces: (default: 0)")
+    if len(choice) == 0:
+        return [Path(choices[0])]
     for index in [int(strindex) for strindex in choice.split(" ")]:
         print("choice: ", index)
-        folders.append(choices[index])
+        folders.append(Path(choices[index]))
     return folders
 
 
