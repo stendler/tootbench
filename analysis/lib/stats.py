@@ -65,6 +65,7 @@ class Vmstat(Stats):
     def __init__(self, path: Path, save: bool = True):
         super().__init__("vmstat", path, save)
         self.df["cpu"] = 100 - self.df["idle"]
+        self.df["user+kernel"] = self.df["user_time"] + self.df["kernel_time"]
 
     def cpu_utilization(self, filter: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "Vmstat":
         # vmstat cpu util
@@ -73,11 +74,14 @@ class Vmstat(Stats):
         ax.set_xlabel("Time in seconds")
         ax.set_ylabel("CPU utilisation percentage")
         sb.lineplot(x="time", y="cpu", hue="scenario", data=df, ax=ax)
-        self._save_plot("vmstat-cpu-utilization_" + name, close=False)
-        sb.lineplot(x="time", y="user_time", hue="scenario", data=df, ax=ax, linestyle="dashed", legend=False)
-        self._save_plot("vmstat-cpu+user-utilization_" + name, close=False)
-        sb.lineplot(x="time", y="kernel_time", hue="scenario", data=df, ax=ax, linestyle="dotted", legend=False)
-        self._save_plot("vmstat-cpu+kernel-utilization_" + name)
+        self._save_plot("vmstat-cpu-utilization_" + name, close=True)
+        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        ax.set_xlabel("Time in seconds")
+        ax.set_ylabel("CPU user & system utilisation percentage")
+        sb.lineplot(x="time", y="user_time", hue="scenario", data=df, ax=ax, linestyle="dashed", legend=True)
+        #self._save_plot("vmstat-user-utilization_" + name, close=True)
+        sb.lineplot(x="time", y="user+kernel", hue="scenario", data=df, ax=ax, linestyle="dotted", legend=False)
+        self._save_plot("vmstat-kernel-utilization_" + name)
         return self
 
     def io(self, filter: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "Vmstat":
