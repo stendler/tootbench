@@ -23,3 +23,4 @@ for i in $(seq $max_instances); do
   echo "Generating instance secrets [$i/$max_instances]"
   ./scripts/secrets.sh >> terraform/secrets.yaml
 done
+terraform -chdir=terraform init
