@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Callable
 
 import lib.filter as filter
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -31,6 +32,7 @@ class Stats(ABC):
 
     def _save_plot(self, filename: str, close: bool = True):
         plt.tight_layout(pad=0.5)
+        print(f"{'saving' if self.save else 'showing'} new plot: {filename}")
         if not self.save:
             plt.show(block=False)
         else:
@@ -123,8 +125,8 @@ class Vmstat(Stats):
 
 class DiskIO(Stats):
 
-    def __init__(self, path: Path):
-        super().__init__("iostat-disk", path)
+    def __init__(self, path: Path, save: bool = True):
+        super().__init__("iostat-disk", path, save=save)
 
     def quick_stats(self, filter: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "DiskIO":
         df = filter(self.df)
@@ -139,8 +141,8 @@ class DiskIO(Stats):
 
 class CpuIO(Stats):
 
-    def __init__(self, path: Path):
-        super().__init__("iostat-cpu", path)
+    def __init__(self, path: Path, save: bool = True):
+        super().__init__("iostat-cpu", path, save=save)
 
     def quick_stats(self, filter: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "CpuIO":
         df = filter(self.df)
@@ -155,8 +157,8 @@ class CpuIO(Stats):
 
 
 class Mpstat(Stats):
-    def __init__(self, path: Path):
-        super().__init__("mpstat", path)
+    def __init__(self, path: Path, save: bool = True):
+        super().__init__("mpstat", path, save=save)
 
     def quick_stats(self, filter: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "Mpstat":
         df = filter(self.df)
@@ -191,8 +193,8 @@ def clean_docker_stats_units(x: str) -> np.float64:
 
 class DockerStats(Stats):
 
-    def __init__(self, path: Path):
-        super().__init__("docker-stats", path)
+    def __init__(self, path: Path, save: bool = True):
+        super().__init__("docker-stats", path, save=save)
         self.df["net_input"] = self.df["net_input"].map(clean_docker_stats_units)
         self.df["net_output"] = self.df["net_output"].map(clean_docker_stats_units)
         self.df["block_input"] = self.df["block_input"].map(clean_docker_stats_units)
@@ -227,7 +229,6 @@ class DockerStats(Stats):
         self._save_plot(f"docker_mem_all_{name}", close=True)
         return self
 
-
     def quick_stats(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
                     name: str = "mastodon") -> "DockerStats":
         df = filter_fun(self.df)
@@ -243,26 +244,105 @@ class DockerStats(Stats):
         return self
 
 
-
 class Ping(Stats):
 
-    def __init__(self, path: Path):
-        super().__init__("ping", path)
+    def __init__(self, path: Path, save: bool = True):
+        super().__init__("ping", path, save)
 
     def lineplot(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
                  name: str = "mastodon", log: bool = False) -> "Ping":
         df = filter_fun(self.df)
         fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
-        ax.set_xlabel("Time in seconds")
+        ax.set_xlabel("Time in minutes")
         ax.set_ylabel("Ping latency in ms")
         if log:
             ax.set_yscale("log", base=10)
-        sb.lineplot(x="time", y="time", hue="host", style="target", data=df, ax=ax)
+        print(df["timestamp"])
+        sb.lineplot(x="time", y="ping_time", hue="host", style="target", data=df, ax=ax)
         self._save_plot(f"ping_{name}", close=True)
         return self
 
 
 class Tootbench(Stats):
 
-    def __init__(self, path: Path):
-        super().__init__("tootbench", path, timestamp="timestamp_iso")
+    def __init__(self, path: Path, save: bool = True):
+        super().__init__("tootbench", path, timestamp="timestamp_iso", save=save)
+
+        self.df["same_host"] = self.df["sender_domain"] == self.df["receiver_domain"]
+
+        self.df["timestamp_iso"] = pd.to_datetime(self.df["timestamp_iso"], utc=True)  # log timestamp
+        # timestamp of message creation/reception
+        self.df["message_timestamp"] = pd.to_datetime(self.df["message_timestamp"], utc=True)
+        self.df["server_timestamp"] = pd.to_datetime(self.df["server_timestamp"], utc=True)
+        # post: delta between message sent and server receive; status: delta between server receive and client receive
+        self.df["delta_tx"] = ((self.df["server_timestamp"] - self.df["message_timestamp"]) / np.timedelta64(1, 'ms')).astype(np.float64).abs()
+        # post: delta between server receive and ack to sender; status: delta between server receive and client receive (should be about the same as delta_tx for status)
+        self.df["delta_txack"] = ((self.df["timestamp_iso"] - self.df["server_timestamp"]) / np.timedelta64(1, 'ms')).astype(np.float64)
+        self.toot_lowest = self.df[["scenario", "run", "timestamp_iso"]].groupby(by=["scenario", "run"]).min()
+        for i, group in self.df.groupby(by=["scenario", "run"]):
+            self.df.loc[group.index, 'time_delta'] = ((group["timestamp_iso"] - self.toot_lowest.loc[i, "timestamp_iso"]) / np.timedelta64(1, 'm')).astype(np.float64)
+
+    def post_tx(self, process: Callable[[pd.DataFrame], pd.DataFrame] = filter.none) -> "Tootbench":
+        """
+        Plot the latency between post creation on the client until server timestamp.
+        """
+        df = filter.of(process, filter.column("message_type", value="post"))(self.df)
+        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        ax.set_xlabel("Time in minutes")
+        ax.set_ylabel("Message post tx latency in ms")
+        ax.set_yscale("log", base=10)
+        ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        sb.lineplot(x="time_delta", y="delta_tx", hue="scenario", data=df, ax=ax)
+        self._save_plot(f"client_post_tx_latency", close=True)
+
+        return self
+
+    def post_txack(self, process: Callable[[pd.DataFrame], pd.DataFrame] = filter.none) -> "Tootbench":
+        """
+        Plot the latency between POST request from the client until server POST response.
+        """
+        df = filter.of(process, filter.column("message_type", value="post"))(self.df)
+        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        ax.set_xlabel("Time in minutes")
+        ax.set_ylabel("Message post roundtrip latency in ms")
+        ax.set_yscale("log", base=10)
+        ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        sb.lineplot(x="time_delta", y=(df["delta_tx"]+df["delta_txack"]), hue="scenario", data=df, ax=ax)
+        self._save_plot(f"client_post_txack_latency", close=True)
+
+        return self
+
+    def post_rx(self, process: Callable[[pd.DataFrame], pd.DataFrame] = filter.none) -> "Tootbench":
+        """
+        Plot the latency between server post rx and user clients post rx.
+        """
+        df = filter.of(process, filter.column("message_type", value="status"))(self.df)
+        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        ax.set_xlabel("Time in minutes")
+        ax.set_ylabel("Message distribution latency in ms")
+        ax.set_yscale("log", base=10)
+        ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        sb.lineplot(x="time_delta", y=df["delta_tx"], hue="scenario", style="same_host", data=df, ax=ax)
+        self._save_plot(f"client_status_rx_latency", close=True)
+
+        return self
+
+    def post_e2e_latency(self, process: Callable[[pd.DataFrame], pd.DataFrame] = filter.none) -> "Tootbench":
+        """
+        Plot e2e latency per post per receiving user.
+        """
+        df = process(self.df)
+        tx = filter.column("message_type", value="post")(df)
+        rx = filter.column("message_type", value="status")(df)
+
+        merged = tx.merge(rx, on=["scenario", "run", "sender_domain", "sender_username", "server_timestamp"], suffixes=(None, "_RX"))
+        merged["e2e_latency"] = merged["delta_tx"] + merged["delta_tx_RX"]
+
+        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        ax.set_xlabel("Time in minutes")
+        ax.set_ylabel("Message distribution latency in ms")
+        ax.set_yscale("log", base=10)
+        ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        sb.lineplot(x="time_delta", y="e2e_latency", hue="scenario", style="same_host", data=merged, ax=ax)
+
+        return self

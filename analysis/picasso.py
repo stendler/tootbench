@@ -3,8 +3,9 @@ import os
 from pathlib import Path
 
 import lib.filter as filter
+import lib.window as window
 import seaborn as sb
-from lib.stats import Vmstat, Mpstat, CpuIO, DiskIO, DockerStats, Ping
+from lib.stats import Vmstat, Mpstat, CpuIO, DiskIO, DockerStats, Ping, Tootbench
 
 
 def main(path: Path):
@@ -17,14 +18,22 @@ def main(path: Path):
 
     vmstat = Vmstat(path)
     vmstat.cpu_utilization(filter.instances).cpu_utilization(filter.client, "client")
-    #vmstat.io(filter.instances).io(filter.client, "client")
-    #vmstat.interrupts(filter.instances).interrupts(filter.client, "client")
+    vmstat.cpu_utilization(filter.of(filter.instances, window.tumble()), "windowed")\
+        .cpu_utilization(filter.of(filter.client, window.tumble()), "windowed_client")
+    vmstat.io(filter.instances).io(filter.client, "client")
+    vmstat.interrupts(filter.instances).interrupts(filter.client, "client")
 
     cio = CpuIO(path)
     dio = DiskIO(path)
     mpstat = Mpstat(path)
     docker = DockerStats(path).memory()
-    ping = Ping(path).lineplot()
+    ping = Ping(path).lineplot(window.tumble(["scenario", "run", "host", "target", "ip"], func=window.max))
+    client_data_window = window.tumble(["scenario", "run", "message_type", "same_host"], time_column="time_delta", unit="m")
+    toot = Tootbench(path)\
+        .post_tx(client_data_window)\
+        .post_rx(client_data_window)\
+        .post_txack(client_data_window)
+#        .post_e2e_latency(window.tumble(["scenario", "run", "message_type", "same_host", "sender_domain", "sender_username", "sender_username"], time_column="time_delta", unit="m"))
 
     for scenario in vmstat.scenarios:
         vmstat.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
