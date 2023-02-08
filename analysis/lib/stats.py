@@ -73,12 +73,12 @@ class Vmstat(Stats):
         # vmstat cpu util
         df = filter(self.df)
         fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
-        ax.set_xlabel("Time in seconds")
+        ax.set_xlabel("Time in minutes")
         ax.set_ylabel("CPU utilisation percentage")
         sb.lineplot(x="time", y="cpu", hue="scenario", data=df, ax=ax)
         self._save_plot("vmstat-cpu-utilization_" + name, close=True)
         fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
-        ax.set_xlabel("Time in seconds")
+        ax.set_xlabel("Time in minutes")
         ax.set_ylabel("CPU user & system utilisation percentage")
         sb.lineplot(x="time", y="user_time", hue="scenario", data=df, ax=ax, linestyle="dashed", legend=True)
         # self._save_plot("vmstat-user-utilization_" + name, close=True)
@@ -86,15 +86,26 @@ class Vmstat(Stats):
         self._save_plot("vmstat-kernel-utilization_" + name)
         return self
 
+    def cpu_sum(self, filter_func: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "Vmstat":
+        # vmstat cpu util
+        df = filter_func(filter.instances(self.df).groupby(by=["scenario", "run", "time"], as_index=False).sum())
+        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        ax.set_xlabel("Time in minutes")
+        ax.set_ylabel("Summed CPU utilisation percentage")
+        sb.lineplot(x="time", y="cpu", hue="scenario", data=df, ax=ax)
+        self._save_plot("vmstat-cpu-sum_" + name, close=True)
+        return self
+
+
     def io(self, filter: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "Vmstat":
         # vmstat io
         df = filter(self.df)
         fig, (ax0, ax1) = plt.subplots(2, figsize=(20, 10), dpi=100, sharex='all')
         sb.lineplot(x="time", y="blocks_received", hue="scenario", data=df, ax=ax0)
-        ax0.set_xlabel("Time in seconds")
+        ax0.set_xlabel("Time in minutes")
         ax0.set_ylabel("Blocks per second received from block device")
         sb.lineplot(x="time", y="blocks_sent", hue="scenario", data=df, ax=ax1)
-        ax1.set_xlabel("Time in seconds")
+        ax1.set_xlabel("Time in minutes")
         ax1.set_ylabel("Blocks per second sent to block device")
         self._save_plot("vmstat-io_" + name)
         return self
@@ -104,10 +115,10 @@ class Vmstat(Stats):
         df = filter(self.df)
         fig, (ax0, ax1) = plt.subplots(2, figsize=(20, 10), dpi=100, sharex='all')
         sb.lineplot(x="time", y="interrupts", hue="scenario", data=df, ax=ax0)
-        ax0.set_xlabel("Time in seconds")
+        ax0.set_xlabel("Time in minutes")
         ax0.set_ylabel("Interrupts per second")
         sb.lineplot(x="time", y="context_switches", hue="scenario", data=df, ax=ax1)
-        ax1.set_xlabel("Time in seconds")
+        ax1.set_xlabel("Time in minutes")
         ax1.set_ylabel("Context switches per second")
         self._save_plot("vmstat-interrupts_" + name)
         return self
@@ -211,7 +222,7 @@ class DockerStats(Stats):
                  name: str = "mastodon", log: bool = False) -> "DockerStats":
         df = filter_fun(self.df_container)
         fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
-        ax.set_xlabel("Time in seconds")
+        ax.set_xlabel("Time in minutes")
         ax.set_ylabel(column)
         if log:
             ax.set_yscale("log", base=10)
@@ -219,14 +230,29 @@ class DockerStats(Stats):
         self._save_plot(f"docker_{column}_{name}", close=True)
         return self
 
-    def memory(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
-               name: str = "mastodon",):
-        df = filter_fun(self.df).groupby(by=["scenario", "run", "timestamp", "time", "host"], as_index=False).sum()
+    def memory(self, window: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
+               name: str = "mastodon",) -> "DockerStats":
+        df = window(self.df.groupby(by=["scenario", "run", "timestamp", "timestamp_micro", "time", "host"], as_index=False).sum()
+                    .groupby(by=["scenario", "run", "timestamp", "time", "host"], as_index=False).mean())
         fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
-        ax.set_xlabel("Time in seconds")
-        ax.set_ylabel("Memory utilization of all containers")
+        ax.set_xlabel("Time in minutes")
+        ax.set_ylabel("Memory utilization of all containers combined")
         sb.lineplot(x="time", y="mem_pct", hue="scenario", style="host", data=df, ax=ax)
         self._save_plot(f"docker_mem_all_{name}", close=True)
+        return self
+
+    def mem_sum(self, window: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
+                name: str = "mastodon",) -> "DockerStats":
+        df = window(self.df.groupby(by=["scenario", "run", "timestamp", "timestamp_micro", "time", "host"], as_index=False).sum()
+                        .groupby(by=["scenario", "run", "timestamp", "time", "host"], as_index=False).mean())\
+            .groupby(by=["scenario", "run", "timestamp", "time"]).sum()
+        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        ax.set_xlabel("Time in minutes")
+        ax.set_ylabel("Global sum memory of all containers in KiB")
+        ax.set_yscale("log", base=2)
+        ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        sb.lineplot(x="time", y="mem_usage", hue="scenario", data=df, ax=ax)
+        self._save_plot(f"docker_mem_sum_all_{name}", close=True)
         return self
 
     def quick_stats(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,

@@ -17,16 +17,17 @@ def main(path: Path):
     sb.set_context("talk")
 
     vmstat = Vmstat(path)
-    vmstat.cpu_utilization(filter.instances).cpu_utilization(filter.client, "client")
+    vmstat.cpu_sum(window.tumble(["scenario", "run"]))
+    #vmstat.cpu_utilization(filter.instances).cpu_utilization(filter.client, "client")
     vmstat.cpu_utilization(filter.of(filter.instances, window.tumble()), "windowed")\
         .cpu_utilization(filter.of(filter.client, window.tumble()), "windowed_client")
-    vmstat.io(filter.instances).io(filter.client, "client")
-    vmstat.interrupts(filter.instances).interrupts(filter.client, "client")
+    #vmstat.io(filter.of(filter.instances, window-tumble()).io(filter.of(filter.client, window.tumble()), "client")
+    #vmstat.interrupts(filter.of(filter.instances, window.tumble()).interrupts(filter.of(filter.client, window.tumble()), "client")
 
     cio = CpuIO(path)
     dio = DiskIO(path)
     mpstat = Mpstat(path)
-    docker = DockerStats(path).memory()
+    docker = DockerStats(path).memory(window.tumble()).mem_sum(window.tumble())
     ping = Ping(path).lineplot(window.tumble(["scenario", "run", "host", "target", "ip"], func=window.max))
     client_data_window = window.tumble(["scenario", "run", "message_type", "same_host"], time_column="time_delta", unit="m")
     toot = Tootbench(path)\
@@ -36,6 +37,8 @@ def main(path: Path):
 #        .post_e2e_latency(window.tumble(["scenario", "run", "message_type", "same_host", "sender_domain", "sender_username", "sender_username"], time_column="time_delta", unit="m"))
 
     for scenario in vmstat.scenarios:
+        print(f"Total messages Sent in {scenario}: ", filter.of(filter.column("message_type", "post"), filter.scenario(scenario))(toot.df).groupby(by="run").count())
+        print(f"Total messages Received in {scenario}: ", filter.of(filter.column("message_type", "status"), filter.scenario(scenario))(toot.df).groupby(by="run").count())
         vmstat.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
             .quick_stats(filter.client, f"{scenario}_client")
         cio.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
@@ -44,14 +47,14 @@ def main(path: Path):
             .quick_stats(filter.client, f"{scenario}_client")
         mpstat.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario)\
             .quick_stats(filter.client, f"{scenario}_client")
-        docker.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario) \
-            .quick_stats(filter.client, f"{scenario}_client") \
-            .lineplot("cpu_pct", filter.scenario(scenario), scenario) \
-            .lineplot("mem_pct", filter.scenario(scenario), scenario) \
-            .lineplot("net_input", filter.scenario(scenario), scenario, True) \
-            .lineplot("net_output", filter.scenario(scenario), scenario, True) \
-            .lineplot("block_input", filter.scenario(scenario), scenario, True) \
-            .lineplot("block_output", filter.scenario(scenario), scenario, True)
+ #       docker.quick_stats(filter.of(filter.instances, filter.scenario(scenario)), scenario) \
+ #           .quick_stats(filter.client, f"{scenario}_client") \
+ #           .lineplot("cpu_pct", filter.scenario(scenario), scenario) \
+ #           .lineplot("mem_pct", filter.scenario(scenario), scenario) \
+ #           .lineplot("net_input", filter.scenario(scenario), scenario, True) \
+ #           .lineplot("net_output", filter.scenario(scenario), scenario, True) \
+ #           .lineplot("block_input", filter.scenario(scenario), scenario, True) \
+ #           .lineplot("block_output", filter.scenario(scenario), scenario, True)
 
 
 def folder_selection() -> [Path]:
