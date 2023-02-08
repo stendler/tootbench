@@ -191,15 +191,15 @@ def clean_docker_stats_units(x: str) -> np.float64:
     if x.endswith("KiB"):
         return np.float64(x.removesuffix("KiB"))
     if x.endswith("MB"):
-        return np.divide(np.float64(x.removesuffix("MB")), 1000)
+        return np.multiply(np.float64(x.removesuffix("MB")), 1000)
     if x.endswith("MiB"):
-        return np.divide(np.float64(x.removesuffix("MiB")), 1024)
+        return np.multiply(np.float64(x.removesuffix("MiB")), 1024)
     if x.endswith("GB"):
-        return np.divide(np.float64(x.removesuffix("GB")), 1_000_000)
+        return np.multiply(np.float64(x.removesuffix("GB")), 1_000_000)
     if x.endswith("GiB"):
-        return np.divide(np.float64(x.removesuffix("GiB")), 1024 * 1024)
+        return np.multiply(np.float64(x.removesuffix("GiB")), 1024 * 1024)
     if x.endswith("B"):
-        return np.multiply(np.float64(x.removesuffix("B")), 1000)
+        return np.divide(np.float64(x.removesuffix("B")), 1000)
 
 
 class DockerStats(Stats):
