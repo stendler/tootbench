@@ -16,7 +16,7 @@ ssh-keygen -f .ssh/id_ed25519 -t ed25519
 docker build -t minica minica/. # if not done already
 docker run --rm -v "$HOST_VOLUME_MOUNT/cert:/cert" minica --domains localhost # if not done already to generate the root cert
 openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/minica.der
-./build.sh
+./scripts/build.sh
 echo "secrets:" > terraform/secrets.yaml
 # repeat as much as maximum parallel instances to be deployed
 for i in $(seq $max_instances); do

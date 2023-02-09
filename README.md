@@ -102,9 +102,39 @@ build the client and generate secrets required for mastodon to be used configure
 make init
 ```
 
+Which is short for:
+
+```sh
+max_instances=10  # just to be sure; 3 are enough for the current biggest scenario
+
+# if running inside docker: to be able to mount a volume from the host
+if [ -z "$HOST_VOLUME_MOUNT" ]; then
+  HOST_VOLUME_MOUNT="$(pwd)"
+  echo "No HOST_VOLUME_MOUNT set. Assuming running on the host and the following directory is accessible by the docker daemon: $HOST_VOLUME_MOUNT"
+fi
+
+# generate an ssh key to access the gcloud machines
+ssh-keygen -f .ssh/id_ed25519 -t ed25519
+# build the minica image and run it once, to create the root certificate
+docker build -t minica minica/. # if not done already
+docker run --rm -v "$HOST_VOLUME_MOUNT/cert:/cert" minica --domains localhost
+# transform the root cert into a format Java understands and create a build of the client with that cert
+openssl x509 -outform der -in cert/minica.pem -out client/src/main/resources/minica.der
+./scripts/build.sh
+# generate multiple secrets to be used by mastodon instances
+echo "secrets:" > terraform/secrets.yaml
+# repeat as much as maximum parallel instances to be deployed
+for i in $(seq $max_instances); do
+  echo "Generating instance secrets [$i/$max_instances]"
+  ./scripts/secrets.sh >> terraform/secrets.yaml
+done
+# initialize terraform and install used modules
+terraform -chdir=terraform init
+```
+
 #### Manual deployment
 
-(see `make help` for available scenarios and fulfilled requirement)
+(see `make help` for available scenarios and if requirements are fulfilled)
 
 ```sh
 make scenario=debug_multi setup prepare start
@@ -136,3 +166,26 @@ Install dependencies via poetry in the `analysis` directory, if not done already
 Within the `analysis` directory run `./picasso.py` and select the input folder containing the log files to be processed.
 
 This script will take a moment and generate many plots and tables.
+
+
+## Repository structure
+
+- `.run`: contains an IntelliJ run configuration to create the gcloud-terraform Docker image and open a terminal inside a new container of that
+- `analysis` python project for analysis scripts
+  - `/input` preprocessed input files
+  - `/output` generated result files e.g., plots, tables in different formats
+  - `/preprocessing` utility scripts used by `preprocess.sh` to preprocess files in `playbooks/logs/`
+  - `/picasso.py` cli entrypoint for analysis
+- `client` Java project for the tootbench load client application
+- `gcloud-terraform/Dockerfile` Image with (almost) all necessary dependencies
+- `mastodon` git subtree of the original mastodon v3.5.5 source for custom builds with some applied patches for additional logs and (almost) practically disabled rate-limiting
+  - for a prebuilt docker image see https://git.tu-berlin.de/stendler/tootbench/container_registry/978
+- `minica/Dockerfile` Image to easily create TLS certificates into `cert`
+- `playbooks` Ansible playbooks for the benchmark deployment lifecycle: await-init, prepare, start, wait, stop, collect, clean
+  - `/logs` output folder for collected logs by timestamp (plus additional comment configured in `./tootbench` cli argument)
+- `scripts` mainly scripts used in the Makefile for the benchmark deployment lifecycle
+  - `/util` administration utility scripts used on the deployed mastodon instances 
+- `terraform` Terraform and cloud-init declaration of the used infrastructure 
+  - `/scenarios` Contains a `.tfvars` file for each scenario to be benchmarked
+- `Makefile` simple way to use the utility scripts and manually instruct deployments. See `make help`
+- `tootbench` CLI script to orchestrate a benchmark of multiple scenarios and multiple runs. See `./tootbench --help`
