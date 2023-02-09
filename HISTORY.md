@@ -1,6 +1,8 @@
 ## History / Steps done created
 
-Steps done to create this repo.
+Steps done to create this repo and to get to know mastodon.
+
+NOTE: less regularly to not at all updated after some time.
 
 ```sh
 # add mastodon as git subtree
@@ -132,6 +134,8 @@ Moved these into scripts:
 ./scripts/restart-instance.sh # optionally with a terraform resource name to be restarted (default: "instance client")
 ./scripts/destroy-single-instance.sh # shutdown
 ```
+
+Note: renamed scripts and moved to Ansible
 
 #### (obsolete) Create and push reused images
 
