@@ -12,3 +12,6 @@ hosts.ini
 *.log.gz
 secrets.yaml
 host_vars/
+
+# python
+.ipynb_checkpoints/
