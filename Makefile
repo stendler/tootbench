@@ -89,5 +89,3 @@ clean:
 
 destroy:
 	terraform -chdir=terraform destroy ${scenario_cmd}
-
-analyse:

@@ -25,6 +25,8 @@ For analysis:
 
 <details><summary>Setup (for local dev deployment)</summary>
 
+> ⚠ **NOTE:** The Dockerfile was moved/renamed and may currently **not** be fully functional. This was only used as a playground.
+
 #### Create .env configuration files
 
 Create the `.env.production` file (especially the secrets and keys):
@@ -100,34 +102,37 @@ build the client and generate secrets required for mastodon to be used configure
 make init
 ```
 
-#### Deploy single instance
+#### Manual deployment
+
+(see `make help` for available scenarios and fulfilled requirement)
 
 ```sh
-./scripts/setup-single-instance.sh # setup and deploy everything (including certs)
-./scripts/restart-instance.sh # optionally with a terraform resource name to be restarted (default: "instance client")
-./scripts/destroy-single-instance.sh # shutdown
+make scenario=debug_multi setup prepare start
+# stop and retrieve log files:
+make scenario=debug_multi stop collect
+# to shutdown all resources:
+make destroy
 ```
 
-## TODO
-- better machines? (at least more cores for mastodon) - e2-standard-4 / e2-highcpu-4 / n2-highcpu-4 / e2-custom-6-6144?
-- plotting:
-  - docker stats per scenario
-  - quickstats per scenario
-  - tootbench:
-    - total number of sent messages
-    - average received messages
-    - latency
-    - 
-  - are the intervals really 1 sec each per thread? (should be visible in the logs as well though)
-- docker-compose: limit resources / set min reserved
+#### Tootbench CLI tool
 
-- update README: 
-  - make usage & requirements
-  - usage of adjusted tootbench for benchmark runs
-  - use container for python&poetry if not available on the system?
+In the project root directory, the following command runs the benchmarked scenarios for a client duration of 20 minutes and with 5 repetitions:
 
-## Future ToDos
+```sh
+./tootbench -n 5 --runtime 1200 -c  6core-6GB_25sidekiq_5.5s_interval_20min 3x10 2x15 2x10 1x10 1x30
+```
 
-- monitoring services: move all at once (folder) and specify a custom common target to start them
-- monitoring services: awk only relevant lines
-- user avatars (differing per user globally) --> load
+A summary of the configuration will be shown and needs to be confirmed.
+After that, the tool will run all everything automatically, even posting progress notifications via ntfy.sh and retrying if a run failed somewhere.
+
+After all runs it will run the `./analysis/preprocess.sh` script automatically on the new files.
+
+### Analysis
+
+Requires Python3 and poetry (not available in the gcloud-terraform container).
+
+Install dependencies via poetry in the `analysis` directory, if not done already: `poetry install`.
+
+Within the `analysis` directory run `./picasso.py` and select the input folder containing the log files to be processed.
+
+This script will take a moment and generate many plots and tables.
