@@ -2,12 +2,13 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Callable
 
-import lib.filter as filter
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sb
+
+import lib.filter as filter
 
 
 class Stats(ABC):
@@ -72,12 +73,12 @@ class Vmstat(Stats):
     def cpu_utilization(self, filter: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "Vmstat":
         # vmstat cpu util
         df = filter(self.df)
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel("CPU utilisation percentage")
         sb.lineplot(x="time", y="cpu", hue="scenario", data=df, ax=ax)
         self._save_plot("vmstat-cpu-utilization_" + name, close=True)
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel("CPU user & system utilisation percentage")
         sb.lineplot(x="time", y="user_time", hue="scenario", data=df, ax=ax, linestyle="dashed", legend=True)
@@ -89,7 +90,7 @@ class Vmstat(Stats):
     def cpu_sum(self, filter_func: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "Vmstat":
         # vmstat cpu util
         df = filter_func(filter.instances(self.df).groupby(by=["scenario", "run", "time"], as_index=False).sum())
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel("Summed CPU utilisation percentage")
         sb.lineplot(x="time", y="cpu", hue="scenario", data=df, ax=ax)
@@ -100,7 +101,7 @@ class Vmstat(Stats):
     def io(self, filter: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "Vmstat":
         # vmstat io
         df = filter(self.df)
-        fig, (ax0, ax1) = plt.subplots(2, figsize=(20, 10), dpi=100, sharex='all')
+        fig, (ax0, ax1) = plt.subplots(2, figsize=(4, 3), sharex='all')
         sb.lineplot(x="time", y="blocks_received", hue="scenario", data=df, ax=ax0)
         ax0.set_xlabel("Time in minutes")
         ax0.set_ylabel("Blocks per second received from block device")
@@ -113,7 +114,7 @@ class Vmstat(Stats):
     def interrupts(self, filter: Callable[[pd.DataFrame], pd.DataFrame], name: str = "mastodon") -> "Vmstat":
         # vmstat interrupts
         df = filter(self.df)
-        fig, (ax0, ax1) = plt.subplots(2, figsize=(20, 10), dpi=100, sharex='all')
+        fig, (ax0, ax1) = plt.subplots(2, figsize=(4, 3), sharex='all')
         sb.lineplot(x="time", y="interrupts", hue="scenario", data=df, ax=ax0)
         ax0.set_xlabel("Time in minutes")
         ax0.set_ylabel("Interrupts per second")
@@ -221,7 +222,7 @@ class DockerStats(Stats):
     def lineplot(self, column: str, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
                  name: str = "mastodon", log: bool = False) -> "DockerStats":
         df = filter_fun(self.df_container)
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel(column)
         if log:
@@ -234,7 +235,7 @@ class DockerStats(Stats):
                name: str = "mastodon",) -> "DockerStats":
         df = window(self.df.groupby(by=["scenario", "run", "timestamp", "timestamp_micro", "time", "host"], as_index=False).sum()
                     .groupby(by=["scenario", "run", "timestamp", "time", "host"], as_index=False).mean())
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel("Memory utilization of all containers combined")
         sb.lineplot(x="time", y="mem_pct", hue="scenario", style="host", data=df, ax=ax)
@@ -246,7 +247,7 @@ class DockerStats(Stats):
         df = window(self.df.groupby(by=["scenario", "run", "timestamp", "timestamp_micro", "time", "host"], as_index=False).sum()
                         .groupby(by=["scenario", "run", "timestamp", "time", "host"], as_index=False).mean())\
             .groupby(by=["scenario", "run", "timestamp", "time"]).sum()
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel("Global sum memory of all containers in KiB")
         ax.set_yscale("log", base=2)
@@ -278,7 +279,7 @@ class Ping(Stats):
     def lineplot(self, filter_fun: Callable[[pd.DataFrame], pd.DataFrame] = filter.none,
                  name: str = "mastodon", log: bool = False) -> "Ping":
         df = filter_fun(self.df)
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel("Ping latency in ms")
         if log:
@@ -313,7 +314,7 @@ class Tootbench(Stats):
         Plot the latency between post creation on the client until server timestamp.
         """
         df = filter.of(process, filter.column("message_type", value="post"))(self.df)
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel("Message post tx latency in ms")
         ax.set_yscale("log", base=10)
@@ -328,7 +329,7 @@ class Tootbench(Stats):
         Plot the latency between POST request from the client until server POST response.
         """
         df = filter.of(process, filter.column("message_type", value="post"))(self.df)
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel("Message post roundtrip latency in ms")
         ax.set_yscale("log", base=10)
@@ -343,7 +344,7 @@ class Tootbench(Stats):
         Plot the latency between server post rx and user clients post rx.
         """
         df = filter.of(process, filter.column("message_type", value="status"))(self.df)
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel("Message distribution latency in ms")
         ax.set_yscale("log", base=10)
@@ -364,7 +365,7 @@ class Tootbench(Stats):
         merged = tx.merge(rx, on=["scenario", "run", "sender_domain", "sender_username", "server_timestamp"], suffixes=(None, "_RX"))
         merged["e2e_latency"] = merged["delta_tx"] + merged["delta_tx_RX"]
 
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 3))
         ax.set_xlabel("Time in minutes")
         ax.set_ylabel("Message distribution latency in ms")
         ax.set_yscale("log", base=10)
