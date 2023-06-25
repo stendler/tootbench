@@ -1,7 +1,10 @@
-# repo language statistics: https://github.com/github-linguist/linguist/blob/master/docs/overrides.md
+# include/exclude languages in repo statistics:
+# https://github.com/github-linguist/linguist/blob/master/docs/overrides.md
 
 # ignore vendored git subtree
 mastodon/** linguist-vendored
-
 # notebooks with base64 binary content use a lot of lines
 analysis/*.ipynb linguist-generated
+
+# include ansible yaml
+playbooks/*.yml linguist-detectable
