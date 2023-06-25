@@ -1,2 +1,7 @@
+# repo language statistics: https://github.com/github-linguist/linguist/blob/master/docs/overrides.md
+
 # ignore vendored git subtree
 mastodon/** linguist-vendored
+
+# notebooks with base64 binary content use a lot of lines
+analysis/*.ipynb linguist-generated
