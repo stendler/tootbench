@@ -2,10 +2,9 @@
 import os
 from pathlib import Path
 
-import seaborn as sb
-
 import lib.filter as filter
 import lib.window as window
+import seaborn as sb
 from lib.stats import Vmstat, Mpstat, CpuIO, DiskIO, DockerStats, Ping, Tootbench
 
 
@@ -15,7 +14,7 @@ def main(path: Path):
     """
     sb.set()
     sb.set_style("whitegrid")
-    sb.set_context("paper")
+    sb.set_context("talk")
 
     vmstat = Vmstat(path)
     vmstat.cpu_sum(window.tumble(["scenario", "run"]))
