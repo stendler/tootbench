@@ -2,6 +2,21 @@
 
 (Image Attribution: adapted from [Midjourney](https://www.midjourney.com) [CC-BY-NC](https://creativecommons.org/licenses/by-nc/4.0/legalcode))
 
+## About
+
+This repository is the result of the portfolio examination of the
+[Cloud Service Benchmarking course](https://moseskonto.tu-berlin.de/moses/modultransfersystem/bolognamodule/beschreibung/anzeigen.html?nummer=41035&version=2&sprache=2)
+by @dbermbach, @martingrambow and @njapke at TU Berlin.
+
+This project benchmarks the overhead of [Mastodons](https://github.com/mastodon/mastodon) federation in different
+[scenarios](terraform/scenarios) in the Google Cloud Platform.  
+
+![Architecture Overview](architecture-overview.png)
+
+Results for Mastodon v4.0.2 can be found in the jupyter notebook in [`analysis/plot.ipynb`](analysis/plot.ipynb)
+or [here in the report (including the raw files)](https://tubcloud.tu-berlin.de/s/ypKF9b7oN3dHNNd).  
+The source code resides at [GitHub](https://github.com/stendler/tootbench) and [TU GitLab](https://git.tu-berlin.de/stendler/tootbench).
+
 ## Requirements
 
 - docker (mandatory)
