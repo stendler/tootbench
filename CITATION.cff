@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Stendler"
+  given-names: "Maximilian"
+title: "Tootbench"
+date-released: 2023-03-13
+url: "https://git.tu-berlin.de/stendler/tootbench"
+preferred-citation:
+  type: report
+  authors:
+  - family-names: Stendler
+    given-names: Maximilian
+  title: "Tootbench - Report on Benchmarking the Overhead of Mastodon’s Federation"
+  url: "https://tubcloud.tu-berlin.de/s/qoxE9rcP32Qmntk"
+  year: 2023
+  month: 3
+  abstract: >
+    The rising popularity and growing user base of
+    the Fediverse and Mastodon in particular, begs the question
+    regarding the impact of federation on participating instances.
+    This report details the technical implementation, execution and
+    result evaluation of a benchmark of the overhead of Mastodons
+    federation. Mastodon was deployed in production mode using
+    Docker on multiple Compute Engine VMs on the Google Cloud
+    Platform.
+    Scenarios with varying number of instances and users are
+    evaluated regarding CPU utilization per instance, global CPU
+    utilization and latency of published messages distributed from
+    the server to the recipients. The global CPU utilization was the
+    same for a varying number of federating instances and the same
+    amount of global users. But individual instances can be relieved
+    when users are distributed among them. A significant 4 to 10
+    times higher latency of message distribution was measured due
+    to federation, which is still deemed to be acceptable for the human
+    users of this kind of application.
